@@ -35,7 +35,11 @@ runcmd:
   - apt-get update && apt install python3.8 -y
   - apt-get install python3-pip -y
   # Generate a key for Gitlab deploy
-  - runuser -l frank -c 'ssh-keygen -t ed25519 -f /home/frank/.ssh/id_ed25519_aws -C frank -q -N ""' 
+  - runuser -l frank -c 'ssh-keygen -t ed25519 -f /home/frank/.ssh/id_ed25519_aws -C frank -q -N ""'
+  # Setup the key for Gitlab
+  - sudo touch /home/frank/.ssh/known_hosts
+  - ssh-keygen -R gitlab.com
+  - ssh-keyscan -t rsa gitlab.com >> /home/frank/.ssh/known_hosts
   # Setup UFW
   - ufw default deny incoming
   - ufw default allow outgoing
@@ -44,4 +48,4 @@ runcmd:
   # Change hostname
   - hostnamectl set-hostname pnd-server
   # We're done:
-  - mkdir /home/frank/repos
+  - runuser -l frank -c 'mkdir /home/frank/repos'
