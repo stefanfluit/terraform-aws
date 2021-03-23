@@ -1,0 +1,47 @@
+#cloud-config
+
+groups:
+  - ubuntu: [root,sys]
+
+users:
+  - default
+  - name: frank
+    gecos: frank
+    shell: /bin/bash
+    primary_group: root
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: users, admin
+    lock_passwd: false
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCfLIcWeKhkkOfDtOD4vANJxZudu9ccFtR/cPxffcrHHt4rpCF0ANKWZDOccJ0CxM46hR0fqvm30MgBS9DkTUEp8PyzAyH0i+QX7kapGm56f5CT0RB20V6iL0vY3BFY3wycqjHzN7HMi+YbvR2hozOvuyYV18Zw3gR8KIF5XFa0pxiRSr6WZlvm1vyNMLi0NGEsFedc+l0UTUv3EZ5cKRGQcu/xJGcX1Hq72xRe12JYgloBfAOJh5D9sWhqwU3MN1+C9wnlzKz62EzMvOzGjBQsr3w8z+CsZFgWuIzK2OvGX+jXSG+yZKZivSj00OWqVeyP+iPXnWi7+2GyzyIQGdl7 f.d.hoogmoed@gmail.com
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEG7wBPhp1WmxBdYzOlo4rqpr1kwvdSKuX/i0Aq13hvr stefan@fluit-online.nl
+
+packages:
+  - zsh
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - git
+  - software-properties-common
+  - python-is-python3
+
+runcmd:
+  # Configure ohmyzsh
+  - runuser -l frank -c 'sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended'
+  - runuser -l frank -c 'wget -O /home/frank/.zshrc https://raw.githubusercontent.com/stefanfluit/default_files/master/oh_my_zsh/.zshrc-frank'
+  - chsh -s $(which zsh) frank
+  # Configure Python
+  - add-apt-repository ppa:deadsnakes/ppa -y
+  - apt-get update && apt install python3.8 -y
+  - apt-get install python3-pip -y
+  # Generate a key for Gitlab deploy
+  - runuser -l frank -c 'ssh-keygen -t ed25519 -f /home/frank/.ssh/id_ed25519_aws -C frank -q -N ""' 
+  # Setup UFW
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow ssh
+  - echo "y" | ufw enable
+  # Change hostname
+  - hostnamectl set-hostname pnd-server
+  # We're done:
+  - mkdir /home/frank/repos
