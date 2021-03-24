@@ -52,7 +52,30 @@ check_gitlab_key() {
     fi
 }
 
+check_ssh_key() {
+  if [ ! -e "${SSH_KEY}" ]; then
+      cli_log "No SSH key found, generating one."
+      ssh-keygen -b 4096 -t rsa -f "${SSH_ID_RSA}" -C "${ADMIN_MAIL}" -N "" &> /dev/null
+      export SSH_KEY_OUTPUT=$(<${SSH_KEY})
+  fi
+}
+
+check_username() {
+  if [ -n "${SSH_USER}" ]; then
+    cli_log "SSH username found: ${SSH_USER}"
+  else
+    cli_log "Set SSH username: " && read -s SSH_USER
+      if [[ -z "${SSH_USER}" ]]; then
+        cli_log "No SSH username detected, exit script."
+        exit 1;
+      else
+        cli_log "SSH username, user is ${SSH_USER}"
+      fi
+  fi
+}
+
 run_init() {
     check_installed "aws" "terraform"
     check_gitlab_key
+    check_ssh_key
 }
