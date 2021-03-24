@@ -1,20 +1,17 @@
 #cloud-config
 
-groups:
-  - ubuntu: [root,sys]
-
 users:
-  - default
   - name: frank
-    gecos: frank
     shell: /bin/bash
-    primary_group: root
     sudo: ALL=(ALL) NOPASSWD:ALL
-    groups: users, admin
+    groups: users, admin, root
     lock_passwd: false
     ssh_authorized_keys:
       - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCfLIcWeKhkkOfDtOD4vANJxZudu9ccFtR/cPxffcrHHt4rpCF0ANKWZDOccJ0CxM46hR0fqvm30MgBS9DkTUEp8PyzAyH0i+QX7kapGm56f5CT0RB20V6iL0vY3BFY3wycqjHzN7HMi+YbvR2hozOvuyYV18Zw3gR8KIF5XFa0pxiRSr6WZlvm1vyNMLi0NGEsFedc+l0UTUv3EZ5cKRGQcu/xJGcX1Hq72xRe12JYgloBfAOJh5D9sWhqwU3MN1+C9wnlzKz62EzMvOzGjBQsr3w8z+CsZFgWuIzK2OvGX+jXSG+yZKZivSj00OWqVeyP+iPXnWi7+2GyzyIQGdl7 f.d.hoogmoed@gmail.com
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEG7wBPhp1WmxBdYzOlo4rqpr1kwvdSKuX/i0Aq13hvr stefan@fluit-online.nl
+
+package_update: true
+package_upgrade: true
 
 packages:
   - zsh
@@ -35,17 +32,29 @@ runcmd:
   - apt-get update && apt install python3.8 -y
   - apt-get install python3-pip -y
   # Generate a key for Gitlab deploy
-  - runuser -l frank -c 'ssh-keygen -t ed25519 -f /home/frank/.ssh/id_ed25519_aws -C frank -q -N ""'
-  # Setup the key for Gitlab
-  - sudo touch /home/frank/.ssh/known_hosts
-  - ssh-keygen -R gitlab.com
-  - ssh-keyscan -t rsa gitlab.com >> /home/frank/.ssh/known_hosts
-  # Setup UFW
+  - runuser -l frank -c 'ssh-keygen -t ed25519 -f /home/frank/.ssh/id_ed25519 -C frank -q -N ""'
+  # Add Gitlab pub-key
+  - echo "gitlab.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCsj2bNKTBSpIYDEGk9KxsGh3mySTRgMtXL583qmBpzeQ+jqCMRgBqB98u3z++J1sKlXHWfM9dyhSevkMwSbhoR8XIq/U0tCNyokEi/ueaBMCvbcTHhO7FcwzY92WK4Yt0aGROY5qX2UKSeOvuP4D6TPqKF1onrSzH9bx9XUf2lEdWT/ia1NEKjunUqu1xOB/StKDHMoX4/OKyIzuS0q/T1zOATthvasJFoPrAjkohTyaDUz2LN5JoH839hViyEG82yB+MjcFV5MU3N1l1QL3cVUCh93xSaua1N85qivl+siMkPGbO5xR/En4iEY6K2XPASUEMaieWVNTRCtJ4S8H+9" >> /home/frank/.ssh/known_hosts
+  # Set permissions on SSH files/folders
+  - chown frank:frank /home/frank/.ssh/known_hosts
+  - chmod 700 /home/frank/.ssh
+  - chmod 644 /home/frank/.ssh/id_ed25519_aws.pub
+  - chmod 600 /home/frank/.ssh/id_ed25519_aws
+  - chmod 755 /home/frank
+  - chmod 644 /home/frank/.ssh/known_hosts
+  # Setup UFW on top of the AWS one.
   - ufw default deny incoming
   - ufw default allow outgoing
   - ufw allow ssh
   - echo "y" | ufw enable
   # Change hostname
-  - hostnamectl set-hostname pnd-server
-  # We're done:
-  - runuser -l frank -c 'mkdir /home/frank/repos'
+  - sudo hostnamectl set-hostname pnd-server
+  # Configure Git, otherwise the clone won't work. This is not pretty but it works.
+  - runuser -l frank -c 'git config --global pack.windowMemory 256m '
+  - runuser -l frank -c 'git config --global pack.packSizeLimit 256m'
+  - runuser -l frank -c 'git config --global http.postBuffer 1024M'
+  - runuser -l frank -c 'git config --global http.maxRequestBuffer 512M'
+  - runuser -l frank -c 'git config --global core.compression 9'
+  # Creating the repos folder and setting permissions. This will also trigger the run.sh script to continue.
+  - mkdir /home/frank/repos
+  - chown frank:frank /home/frank/repos
