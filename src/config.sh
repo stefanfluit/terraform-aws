@@ -2,7 +2,9 @@
 
 # Change before running
 export GITLAB_API_KEY=""
-export SSH_USER=""
+
+# Sets SSH user to your name, or keep it like this. In this situation it will use your TTY user.
+export SSH_USER="$(whoami)"
 export DISCORD_WEBHOOK=""
 
 # SSH

@@ -53,7 +53,7 @@ cli_log "Waiting for server to start.." sleep 10
 
 declare max_timeout="6000"
 declare timeout_at
-timeout_at=$(( SECONDS + max_timeout )) 
+timeout_at=$(( SECONDS + max_timeout ))
 
 until ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" '[ -d /tmp/done ]'; do
   if (( SECONDS > timeout_at )); then
