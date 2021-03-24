@@ -3,6 +3,7 @@
 # Change before running
 export GITLAB_API_KEY=""
 export SSH_USER=""
+export DISCORD_WEBHOOK=""
 
 # SSH
 # Provide a path to a pub key, e.g., /home/fluit/.ssh/id_rsa.pub or leave empty to create a new one.
