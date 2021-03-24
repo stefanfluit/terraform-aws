@@ -49,7 +49,7 @@ declare max_timeout="6000"
 declare timeout_at
 timeout_at=$(( SECONDS + max_timeout )) 
 
-until ssh -o StrictHostKeyChecking=no frank@"${AWS_IP}" '[ -d /home/frank/repos ]'; do
+until ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" '[ -d /tmp/done ]'; do
   if (( SECONDS > timeout_at )); then
     cli_log "Maximum time of ${max_timeout} passed, stopping script.." 
     exit 1
@@ -59,21 +59,21 @@ done
 
 # Fetch generated root key
 declare ROOT_KEY
-ROOT_KEY=$(ssh -o StrictHostKeyChecking=no frank@${AWS_IP} "cat /home/frank/.ssh/id_ed25519.pub")
+ROOT_KEY=$(ssh -o StrictHostKeyChecking=no ${SSH_USER}@${AWS_IP} "cat /home/${SSH_USER}/.ssh/id_ed25519.pub")
 
 # Add deploy key to server
 cli_log "Adding fetched SSH pub key as Gitlab deploy key.."
-curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_API_KEY}" --header "Content-Type:application/json" --data "{\"title\": \"pnd-server-frank\", \"key\": \"${ROOT_KEY}\", \"can_push\": \"true\"}" "https://gitlab.com/api/v4/projects/24216317/deploy_keys" &> /dev/null
+curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_API_KEY}" --header "Content-Type:application/json" --data "{\"title\": \"pnd-server-${SSH_USER}\", \"key\": \"${ROOT_KEY}\", \"can_push\": \"true\"}" "https://gitlab.com/api/v4/projects/24216317/deploy_keys" &> /dev/null
 
 # Clone repo and install requirements
 # Cloning in multiple steps, because the repo is to big..
 cli_log "Cloning repo on the server.."
-ssh -o StrictHostKeyChecking=no frank@"${AWS_IP}" "git clone --single-branch --branch master git@gitlab.com:Santralos/pnd-binance.git /home/frank/repos/pnd-binance --depth=1" &> /dev/null
+ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "git clone --single-branch --branch master git@gitlab.com:Santralos/pnd-binance.git /home/frank/repos/pnd-binance --depth=1" &> /dev/null
 
 cli_log "Fetching rest of the repo.."
-ssh -o StrictHostKeyChecking=no frank@"${AWS_IP}" "cd /home/frank/repos/pnd-binance && git fetch --depth=10" &> /dev/null
+ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "cd /home/${SSH_USER}/repos/pnd-binance && git fetch --depth=10" &> /dev/null
 
 cli_log "Installing Python requirements.."
-ssh -o StrictHostKeyChecking=no frank@"${AWS_IP}" "cd /home/frank/repos/pnd-binance && pip3 install -r requirements.txt" &> /dev/null && cli_log "Done."
+ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "cd /home/${SSH_USER}/repos/pnd-binance && pip3 install -r requirements.txt" &> /dev/null && cli_log "Done."
 
-cli_log "Access server: ssh frank@${AWS_IP}"
+cli_log "Access server: ssh ${SSH_USER}@${AWS_IP}"
