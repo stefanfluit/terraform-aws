@@ -3,8 +3,12 @@
 
 To use:
 ========
+Make sure you have Git installed:
+```
+sudo apt-get update && sudo apt-get install git -y
+```
 
-clone repo:
+Clone this repo:
 ```
 git clone https://github.com/stefanfluit/terraform-aws.git
 ```
