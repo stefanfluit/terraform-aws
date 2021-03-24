@@ -46,3 +46,4 @@ https://learn.hashicorp.com/tutorials/terraform/install-cli
 ```
 https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html#cliv2-linux-install
 ```
+Tested on Fedora Desktop 33 and WSL 2 on Windows 10 20h2.
