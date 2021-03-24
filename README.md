@@ -23,6 +23,8 @@ Add user and Gitlab API key here, and Discord API URL if you want a Discord aler
 vim src/config.sh
 ```
 
+
+
 To create the EC2 and VPC infrastructure:
 ```
 ./run.sh --run

@@ -10,7 +10,6 @@ resource "aws_instance" "public-ec2" {
     ami           = data.aws_ami.ubuntu.id
     instance_type = var.instance_type
     subnet_id     = module.vpc.subnet_public_id
-    key_name      = var.key_name
     vpc_security_group_ids = [ aws_security_group.ec2-sg.id ]
     associate_public_ip_address = true
 
