@@ -24,7 +24,7 @@ resource "aws_instance" "public-ec2" {
 
 resource "aws_security_group" "ec2-sg" {
   name        = "security-group"
-  description = "allow inbound access to the Application task from NGINX"
+  description = "allow inbound access"
   vpc_id      = module.vpc.vpc_id
 
   ingress {
