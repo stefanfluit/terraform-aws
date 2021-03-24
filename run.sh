@@ -67,14 +67,13 @@ curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_API_KEY}" --header "Conten
 
 # Clone repo and install requirements
 # Cloning in multiple steps, because the repo is to big..
-cli_log "Cloning repo on the server.." && ssh -o StrictHostKeyChecking=no frank@"${AWS_IP}" "git clone --single-branch --branch master git@gitlab.com:Santralos/pnd-binance.git /home/frank/repos/pnd-binance --depth=1"
+cli_log "Cloning repo on the server.."
+ssh -o StrictHostKeyChecking=no frank@"${AWS_IP}" "git clone --single-branch --branch master git@gitlab.com:Santralos/pnd-binance.git /home/frank/repos/pnd-binance --depth=1" &> /dev/null
 
-cli_log "Fething rest of the repo..1/5" && ssh -o StrictHostKeyChecking=no frank@"${AWS_IP}" "cd /home/frank/repos/pnd-binance && git fetch --depth=10"
-cli_log "Fething rest of the repo..2/5" && ssh -o StrictHostKeyChecking=no frank@"${AWS_IP}" "cd /home/frank/repos/pnd-binance && git fetch --depth=100"
-cli_log "Fething rest of the repo..3/5" && ssh -o StrictHostKeyChecking=no frank@"${AWS_IP}" "cd /home/frank/repos/pnd-binance && git fetch --depth=200"
-cli_log "Fething rest of the repo..4/5" && ssh -o StrictHostKeyChecking=no frank@"${AWS_IP}" "cd /home/frank/repos/pnd-binance && git fetch --depth=300"
-cli_log "Fething rest of the repo..5/5" && ssh -o StrictHostKeyChecking=no frank@"${AWS_IP}" "cd /home/frank/repos/pnd-binance && git fetch --unshallow"
+cli_log "Fetching rest of the repo.."
+ssh -o StrictHostKeyChecking=no frank@"${AWS_IP}" "cd /home/frank/repos/pnd-binance && git fetch --depth=10" &> /dev/null
 
-cli_log "Installing Python requirements.." && ssh -o StrictHostKeyChecking=no frank@"${AWS_IP}" "cd /home/frank/repos/pnd-binance && sudo pip3 install requirements.txt" && cli_log "Done."
+cli_log "Installing Python requirements.."
+ssh -o StrictHostKeyChecking=no frank@"${AWS_IP}" "cd /home/frank/repos/pnd-binance && pip3 install -r requirements.txt" &> /dev/null && cli_log "Done."
 
 cli_log "Access server: ssh frank@${AWS_IP}"
