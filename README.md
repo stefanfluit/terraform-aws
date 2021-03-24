@@ -3,9 +3,9 @@
 
 To use:
 ========
-Make sure you have Git installed:
+Make sure you have Git and JQ installed:
 ```
-sudo apt-get update && sudo apt-get install git -y
+sudo apt-get update && sudo apt-get install git jq -y
 ```
 
 Clone this repo:
