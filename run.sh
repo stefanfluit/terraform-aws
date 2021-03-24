@@ -35,8 +35,8 @@ case "${args_}" in
             exit 1
 esac
 
+# Add; remove old deploy key
 cli_log "Adding variables to configuration files.."
-cli_log "Archiving old user_data.yml.." && mv "${DIR}"/terraform/deploy/user_data.yml "${TMP_DIR}/user_data.yml_old" &> /dev/null
 cli_log "Adding your Username to user_data.yml.." && sed "s|sshuser|${SSH_USER}|g" "${DIR}"/templates/user_data.yml > "${DIR}"/terraform/deploy/user_data.yml
 cli_log "Adding your SSH key to user_data.yml.." && sed -i "s|sshkey|${SSH_KEY_OUTPUT}|g" "${DIR}"/terraform/deploy/user_data.yml
 
@@ -80,5 +80,8 @@ ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "cd /home/${SSH_USER}/
 
 cli_log "Installing Python requirements.."
 ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "cd /home/${SSH_USER}/repos/pnd-binance && pip3 install -r requirements.txt" &> /dev/null && cli_log "Done."
+
+# Clean up
+cli_log "Archiving old user_data.yml.." && mv "${DIR}"/terraform/deploy/user_data.yml "${TMP_DIR}/user_data.yml_old" &> /dev/null
 
 cli_log "Access server: ssh ${SSH_USER}@${AWS_IP}"
