@@ -1,4 +1,5 @@
-Project Frank
+### Terraform AWS&nbsp;
+
 
 To use:
 ========
@@ -18,7 +19,7 @@ Add user and Gitlab API key here:
 vim src/config.sh
 ```
 
-To create the server and infrastructure:
+To create the EC2 and VPC infrastructure:
 ```
 ./run.sh --run
 ```
