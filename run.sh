@@ -41,7 +41,7 @@ cli_log "Adding your Username to user_data.yml.." && sed "s|sshuser|${SSH_USER}|
 cli_log "Adding your SSH key to user_data.yml.." && sed -i "s|sshkey|${SSH_KEY_OUTPUT}|g" "${DIR}"/terraform/deploy/user_data.yml
 
 # cd to underlying terraform dir and apply all or exit on error
-cli_log "Creating Ec2 instance and apply user_data.yml.."
+cli_log "Creating EC2 instance and apply user_data.yml.."
 cd "${DIR}"/terraform/deploy && terraform init &> /dev/null && terraform plan &> /dev/null && terraform apply -auto-approve &> /dev/null && cli_log "Done!" || exit 1;
 
 declare AWS_IP
@@ -73,7 +73,7 @@ curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_API_KEY}" --header "Conten
 # Clone repo and install requirements
 # Cloning in multiple steps, because the repo is to big..
 cli_log "Cloning repo on the server.."
-ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "git clone --single-branch --branch master git@gitlab.com:Santralos/pnd-binance.git /home/frank/repos/pnd-binance --depth=1" &> /dev/null
+ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "git clone --single-branch --branch master git@gitlab.com:Santralos/pnd-binance.git /home/${SSH_USER}/repos/pnd-binance --depth=1" &> /dev/null
 
 cli_log "Fetching rest of the repo.."
 ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "cd /home/${SSH_USER}/repos/pnd-binance && git fetch --depth=10" &> /dev/null
