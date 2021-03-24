@@ -35,6 +35,11 @@ case "${args_}" in
             exit 1
 esac
 
+# sed "s/ssh-user/$USER_/g" user_data.yml > user_data_demo.yml
+cli_log "Adding variables to configuration files.."
+cli_log "Adding your Username to user_data.yml.." && sed "s/ssh-user/$USER_/g" "${DIR}"/templates/user_data.yml > "${DIR}"/terraform/deploy/user_data.yml
+cli_log "Adding your SSH key to user_data.yml.." && sed -i "s|ssh-key|${SSH_KEY_OUTPUT}|g" "${DIR}"/terraform/deploy/user_data.yml
+
 # cd to underlying terraform dir and apply all or exit on error
 cli_log "Creating Ec2 instance and apply user_data.yml.."
 cd "${DIR}"/terraform/deploy && terraform init &> /dev/null && terraform plan &> /dev/null && terraform apply -auto-approve &> /dev/null && cli_log "Done!" || exit 1;
