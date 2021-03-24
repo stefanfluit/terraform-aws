@@ -18,7 +18,7 @@ cd into the repo
 cd terraform-aws
 ```
 
-Add user and Gitlab API key here:
+Add user and Gitlab API key here, and Discord API URL if you want a Discord alert:
 ```
 vim src/config.sh
 ```
