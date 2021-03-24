@@ -57,6 +57,7 @@ timeout_at=$(( SECONDS + max_timeout ))
 until ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" '[ -d /tmp/done ]'; do
   if (( SECONDS > timeout_at )); then
     cli_log "Maximum time of ${max_timeout} passed, stopping script.." 
+    send_alert "Maximum time of ${max_timeout} passed, stopping script for ${SSH_USER}.."
     exit 1
   fi
     cli_log "Cloud-init not done yet.." && sleep 30
@@ -85,3 +86,4 @@ ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "cd /home/${SSH_USER}/
 cli_log "Archiving old user_data.yml.." && mv "${DIR}"/terraform/deploy/user_data.yml "${TMP_DIR}/user_data.yml_old" &> /dev/null
 
 cli_log "Access server: ssh ${SSH_USER}@${AWS_IP}"
+send_alert "Access server: ssh ${SSH_USER}@${AWS_IP}"
