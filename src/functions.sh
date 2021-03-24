@@ -52,6 +52,7 @@ check_gitlab_key() {
     fi
 }
 
+
 check_ssh_key() {
   if [ -n "${SSH_KEY}" ]; then
     cli_log "SSH key found."
@@ -68,6 +69,17 @@ check_ssh_key() {
       else
         cli_log "SSH key found."
       fi
+  fi
+}
+
+send_alert() {
+  local message_
+  message_="${1}"
+  if [ -n "${DISCORD_WEBHOOK}" ]; then
+    cli_log "Discord webhook URL found, sending alert."
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ChaoticWeg/discord.sh/master/discord.sh)" "" --webhook-url="${DISCORD_WEBHOOK}" --text "${message_}" --username "${SSH_USER}"
+  else
+    cli_log "No Discord URL entered, no alerting possible."
   fi
 }
 
