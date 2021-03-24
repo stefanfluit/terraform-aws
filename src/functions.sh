@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# Finding the directory we're in
+declare DIR
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
 cli_log() {
     local timestamp_
     timestamp_=$(date +"%H:%M")
@@ -52,7 +56,6 @@ check_gitlab_key() {
     fi
 }
 
-
 check_ssh_key() {
   if [ -n "${SSH_KEY}" ]; then
     cli_log "SSH key found."
@@ -77,7 +80,7 @@ send_alert() {
   message_="${1}"
   if [ -n "${DISCORD_WEBHOOK}" ]; then
     cli_log "Discord webhook URL found, sending alert."
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ChaoticWeg/discord.sh/master/discord.sh)" "" --webhook-url="${DISCORD_WEBHOOK}" --text "${message_}" --username "${SSH_USER}"
+    cd "${DIR}/src/alerting" && ./discord.sh --webhook-url="${DISCORD_WEBHOOK}" --text "${message_}" --username "${SSH_USER}"
   else
     cli_log "No Discord URL entered, no alerting possible."
   fi
