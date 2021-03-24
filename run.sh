@@ -36,9 +36,9 @@ case "${args_}" in
 esac
 
 cli_log "Adding variables to configuration files.."
-cli_log "Archiving old user_data.yml.." && mv "${DIR}"/terraform/deploy/user_data.yml "${TMP_DIR}/user_data.yml_old"
-cli_log "Adding your Username to user_data.yml.." && sed "s/ssh-user/$USER_/g" "${DIR}"/templates/user_data.yml > "${DIR}"/terraform/deploy/user_data.yml
-cli_log "Adding your SSH key to user_data.yml.." && sed -i "s|ssh-key|${SSH_KEY_OUTPUT}|g" "${DIR}"/terraform/deploy/user_data.yml
+cli_log "Archiving old user_data.yml.." && mv "${DIR}"/terraform/deploy/user_data.yml "${TMP_DIR}/user_data.yml_old" &> /dev/null
+cli_log "Adding your Username to user_data.yml.." && sed "s|sshuser|${SSH_USER}|g" "${DIR}"/templates/user_data.yml > "${DIR}"/terraform/deploy/user_data.yml
+cli_log "Adding your SSH key to user_data.yml.." && sed -i "s|sshkey|${SSH_KEY_OUTPUT}|g" "${DIR}"/terraform/deploy/user_data.yml
 
 # cd to underlying terraform dir and apply all or exit on error
 cli_log "Creating Ec2 instance and apply user_data.yml.."
