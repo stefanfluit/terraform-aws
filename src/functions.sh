@@ -96,6 +96,10 @@ check_username() {
   fi
 }
 
+run_test() {
+  cli_log "Nothing yet."
+}
+
 run_init() {
     check_installed "aws" "terraform"
     check_gitlab_key
