@@ -96,6 +96,28 @@ check_username() {
   fi
 }
 
+check_aws_region() {
+  if [ -n "${AWS_REGION}" ]; then
+    cli_log "AWS Region found: ${AWS_REGION}"
+  else
+    cli_log "Set AWS region: " && read -s AWS_REGION
+      if [[ -z "${AWS_REGION}" ]]; then
+        cli_log "No AWS Region detected, exit script."
+        exit 1;
+      else
+        cli_log "AWS Region detected."
+      fi
+  fi
+}
+
+check_aws_region_config() {
+  if sed -n "/${AWS_PROFILE}{n;p;}" ~/.aws/config | grep -e ${AWS_REGION}; then
+    cli_log "Regions match, proceeding."
+  else
+    cli_log "AWS Regions don't match, aws will override with the default set in ~/.aws/config for profile ${AWS_{PROFILE}." && exit
+  fi
+}
+
 run_test() {
   sed "s|sshuser|${SSH_USER}|g" "${DIR}"/templates/user_data.yml > /tmp/pnd-server/cloud-init.yml
   cd "${DIR}/src/testing" && vagrant up
@@ -106,4 +128,6 @@ run_init() {
     check_gitlab_key
     check_ssh_key
     check_username
+    check_region
+    check_aws_region && check_aws_region_config
 }
