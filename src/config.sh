@@ -7,6 +7,10 @@ export GITLAB_API_KEY=""
 export SSH_USER="$(whoami)"
 export DISCORD_WEBHOOK=""
 
+# AWS
+export AWS_REGION="ap-northeast-3"
+export AWS_PROFILE="default"
+
 # SSH
 # Provide a path to a pub key, e.g., /home/fluit/.ssh/id_rsa.pub or leave empty to create a new one.
 export SSH_KEY="/home/${SSH_USER}/.ssh/id_rsa.pub"
