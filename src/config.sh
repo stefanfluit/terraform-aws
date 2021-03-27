@@ -10,6 +10,7 @@ export DISCORD_WEBHOOK=""
 # AWS
 export AWS_REGION="ap-northeast-3"
 export AWS_PROFILE="default"
+export AWS_INSTANCE="t3.nano"
 
 # SSH
 # Provide a path to a pub key, e.g., /home/fluit/.ssh/id_rsa.pub or leave empty to create a new one.
@@ -19,3 +20,4 @@ export SSH_ID_RSA=$(echo "${SSH_KEY}" | cut -f1,2 -d'.')
 
 # No need to change
 export TMP_DIR="/tmp/pnd-server"
+export VERSION_URL="https://raw.githubusercontent.com/stefanfluit/terraform-aws/master/VERSION"
