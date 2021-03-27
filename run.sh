@@ -73,10 +73,8 @@ cli_log "Adding fetched SSH pub key as Gitlab deploy key.."
 curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_API_KEY}" --header "Content-Type:application/json" --data "{\"title\": \"pnd-server-${SSH_USER}\", \"key\": \"${ROOT_KEY}\", \"can_push\": \"true\"}" "https://gitlab.com/api/v4/projects/24216317/deploy_keys" &> /dev/null
 
 # Clone repo and install requirements
-# Cloning in multiple steps, because the repo is to big..
 cli_log "Cloning repo on the server.."
 ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "git clone --single-branch --branch master git@gitlab.com:Santralos/pnd-binance.git /home/${SSH_USER}/repos/pnd-binance --depth=1" &> /dev/null
-
 cli_log "Fetching rest of the repo.."
 ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "cd /home/${SSH_USER}/repos/pnd-binance && git fetch --depth=10" &> /dev/null
 
