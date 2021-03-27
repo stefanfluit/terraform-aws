@@ -110,6 +110,20 @@ check_aws_region() {
   fi
 }
 
+check_aws_instance_type() {
+  if [ -n "${AWS_INSTANCE}" ]; then
+    cli_log "AWS Instance type: ${AWS_INSTANCE}"
+  else
+    cli_log "Set AWS Instance type: " && read -s AWS_INSTANCE
+      if [[ -z "${AWS_INSTANCE}" ]]; then
+        cli_log "No AWS Instance detected, exit script."
+        exit 1;
+      else
+        cli_log "AWS Instance detected."
+      fi
+  fi
+}
+
 check_aws_region_config() {
   if sed -n "/${AWS_PROFILE}{n;p;}" ~/.aws/config | grep -e ${AWS_REGION}; then
     cli_log "Regions match, proceeding."
@@ -129,5 +143,7 @@ run_init() {
     check_ssh_key
     check_username
     check_region
-    check_aws_region && check_aws_region_config
+    check_aws_region && \
+    check_aws_region_config && \
+    check_aws_instance_type
 }
