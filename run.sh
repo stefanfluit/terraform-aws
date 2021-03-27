@@ -29,6 +29,11 @@ case "${args_}" in
             # Without the exit the script will just continue and rebuild the structure
             ;;
 
+        --test)
+            cli_log "Testing build.." && run_test
+            exit
+            ;;
+
         *)
             cli_log "No parameter specified."
             cli_log "Run: ./run.sh --destroy, ./run.sh --reset or ./run.sh --run"
