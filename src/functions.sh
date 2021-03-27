@@ -97,7 +97,8 @@ check_username() {
 }
 
 run_test() {
-  cli_log "Nothing yet."
+  sed "s|sshuser|${SSH_USER}|g" "${DIR}"/templates/user_data.yml > /tmp/pnd-server/cloud-init.yml
+  cd "${DIR}/src/testing" && vagrant up
 }
 
 run_init() {
