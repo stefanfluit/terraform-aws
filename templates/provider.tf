@@ -1,5 +1,5 @@
 provider "aws" {
-  region                    = "ap-northeast-3"
+  region                    = "awsregion"
   shared_credentials_file   = "/home/sshuser/.aws/credentials"
   profile                   = "default"
 }
