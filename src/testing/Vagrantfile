@@ -20,6 +20,6 @@ Vagrant.configure("2") do |config|
     config.vm.cloud_init do |cloud_init|
       # With Ubuntu cloud images you have to use cloud_init to get an access
       cloud_init.content_type = "text/cloud-config"
-      cloud_init.path = "/tmp/cloud-init.yml"
+      cloud_init.path = "/tmp/pnd-server/cloud-init.yml"
     end
   end
