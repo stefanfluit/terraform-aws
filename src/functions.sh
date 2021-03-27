@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
 
-# Finding the directory we're in
-declare DIR
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-
 cli_log() {
     local timestamp_
     timestamp_=$(date +"%H:%M")
