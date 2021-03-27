@@ -44,6 +44,7 @@ esac
 cli_log "Adding variables to configuration files.."
 cli_log "Adding your Username to user_data.yml.." && sed "s|sshuser|${SSH_USER}|g" "${DIR}"/templates/user_data.yml > "${DIR}"/terraform/deploy/user_data.yml
 cli_log "Adding Provider to Terraform.." && sed "s|sshuser|${AWS_USER}|g" "${DIR}"/templates/provider.tf > "${DIR}"/terraform/deploy/provider.tf
+cli_log "Adding Region to Terraform.." && sed -i "s|awsregion|${AWS_REGION}|g" "${DIR}"/terraform/deploy/provider.tf
 cli_log "Adding your SSH key to user_data.yml.." && sed -i "s|sshkey|${SSH_KEY_OUTPUT}|g" "${DIR}"/terraform/deploy/user_data.yml
 
 # cd to underlying terraform dir and apply all or exit on error
