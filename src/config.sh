@@ -3,8 +3,6 @@
 # Git variables
 export GITLAB_API_KEY=""
 export DEPLOY_REPO="git@gitlab.com:Santralos/pnd-binance.git"
-
-# Sets SSH user to your name, or keep it like this. In this situation it will use your TTY user.
 export SSH_USER="$(whoami)"
 
 # Alerting
