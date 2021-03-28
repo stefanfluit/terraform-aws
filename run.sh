@@ -26,23 +26,30 @@ args_="${1}"
 
 case "${args_}" in
         --destroy)
+            stamp_logfile "terraform"
             cli_log "Destroying current infra.."
-            cd "${DIR}"/terraform/deploy && terraform destroy -force &> /dev/null && \
+            cd "${DIR}"/terraform/deploy 
+            terraform destroy -force &> "${LOG_LOC}"
             cli_log "Destroyed everything." && exit
             ;;
 
         --reset)
+            stamp_logfile "terraform"
             cli_log "Resetting.." && cli_log "Destroying current infra.."
-            cd "${DIR}"/terraform/deploy && terraform destroy -force &> /dev/null && cli_log "Destroyed everything."
+            cd "${DIR}"/terraform/deploy 
+            terraform destroy -force &> "${LOG_LOC}"
+            cli_log "Destroyed everything."
             # Without the exit the script will just continue and rebuild the structure
             ;;
 
         --run)
+            stamp_logfile "terraform"
             cli_log "Building the structure.." && run_init
             # Without the exit the script will just continue and rebuild the structure
             ;;
 
         --test)
+            stamp_logfile "vagrant"
             cli_log "Testing build.."
             run_test
             exit
@@ -64,7 +71,8 @@ cli_log "Adding your SSH key to user_data.yml.." && sed -i "s|sshkey|${SSH_KEY_O
 
 # cd to underlying terraform dir and apply all or exit on error
 cli_log "Creating EC2 instance and apply user_data.yml.."
-cd "${DIR}"/terraform/deploy && terraform init &> /dev/null && terraform plan &> /dev/null && terraform apply -auto-approve &> /dev/null && cli_log "Done!" || exit 1;
+cd "${DIR}"/terraform/deploy && terraform init &> "${LOG_LOC}" && terraform plan &> "${LOG_LOC}" && \
+terraform apply -auto-approve &> "${LOG_LOC}" && cli_log "Done!" || exit 1;
 
 declare AWS_IP
 AWS_IP=$(terraform output | grep public-ip | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b")
@@ -108,3 +116,4 @@ cli_log "Archiving old Terraform Provider file" && mv "${DIR}"/terraform/deploy/
 
 cli_log "Access server: ssh ${SSH_USER}@${AWS_IP}"
 send_alert "Access server: ssh ${SSH_USER}@${AWS_IP}"
+stamp_logfile "DONE"
