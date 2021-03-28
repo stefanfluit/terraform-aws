@@ -71,15 +71,28 @@ check_ssh_key() {
   fi
 }
 
+status_to_slack() {
+    local _text="${1}"
+    local _webhook="https://hooks.slack.com/services/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"
+    /bin/bash "${DIR}/src/alerting/send_slack.sh" -t "${SSH_USER}" -b "${_text}" -c "${SLACK_CHANNEL}" -u "${SLACK_WEBHOOK}"
+}
+
 send_alert() {
-  local message_
-  message_="${1}"
-  if [ -n "${DISCORD_WEBHOOK}" ]; then
-    cli_log "Discord webhook URL found, sending alert."
-    cd "${DIR}/src/alerting" && ./discord.sh --webhook-url="${DISCORD_WEBHOOK}" --text "${message_}" --username "${SSH_USER}"
-  else
-    cli_log "No Discord URL entered, no alerting possible."
-  fi
+    local message_
+    message_="${1}"
+
+    if [ -n "${DISCORD_WEBHOOK}" ]; then
+        cli_log "Discord webhook URL found, sending alert."
+        cd "${DIR}/src/alerting" && ./discord.sh --webhook-url="${DISCORD_WEBHOOK}" --text "${message_}" --username "${SSH_USER}"
+    else
+        cli_log "Sending alert with Slack."
+            if [ -n "${SLACK_WEBHOOK}" ]; then
+                cli_log "Slack webhook URL found, sending alert."
+                send_slack "${message_}"
+            else
+                cli_log "No valid alerting configuration found."
+            fi
+    fi
 }
 
 check_username() {
