@@ -119,7 +119,7 @@ check_aws_instance_type() {
         cli_log "No AWS Instance detected, exit script."
         exit 1;
       else
-        cli_log "AWS Instance detected."
+        cli_log "AWS Instance type detected."
       fi
   fi
 }
@@ -143,7 +143,7 @@ run_init() {
     check_ssh_key
     check_username
     check_region
-    check_aws_region && \
-    check_aws_region_config && \
+    check_aws_region
+    check_aws_region_config
     check_aws_instance_type
 }
