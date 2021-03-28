@@ -17,7 +17,7 @@ if [ -f "${config_file}" ]; then
     cli_log "${config_file} exists."
     source "${config_file}"
 else 
-    cli_log "${config_file} does not exist, defaulting to config in repo."
+    cli_log "No config file parameter detected, defaulting to config in repo."
     source "${DIR}/src/config.sh"
 fi
 
@@ -43,7 +43,8 @@ case "${args_}" in
             ;;
 
         --test)
-            cli_log "Testing build.." && run_test
+            cli_log "Testing build.."
+            run_test
             exit
             ;;
 
