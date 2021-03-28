@@ -3,6 +3,8 @@
 # Git variables
 export GITLAB_API_KEY=""
 export DEPLOY_REPO="git@gitlab.com:Santralos/pnd-binance.git"
+export BASENAME_REPO=$(basename "${DEPLOY_REPO}" .git)
+export GIT_DEPTH="10"
 export SSH_USER="$(whoami)"
 
 # Alerting
