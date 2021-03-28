@@ -13,7 +13,7 @@ Vagrant.configure("2") do |config|
   
     config.vm.provider "virtualbox" do |v|
       # Name visible inside your Virtualbox UI
-      v.name = "cloud-init-ubuntu-test"
+      v.name = "binance-pnd"
     end
   
     # cloud-init script
