@@ -9,6 +9,7 @@ export SSH_USER="$(whoami)"
 # Alerting
 export DISCORD_WEBHOOK=""
 export SLACK_WEBHOOK=""
+export SLACK_CHANNEL=""
 
 # AWS
 export AWS_REGION="ap-northeast-3"
