@@ -4,8 +4,11 @@
 declare DIR
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
+declare config_file_param
+config_file_param="${2}"
+
 declare config_file
-config_file="${2}"
+config_file=$(echo ${config_file_param} | grep -oP '=\K.*')
 
 if [ -f "${config_file}" ]; then
     cli_log "${config_file} exists."
