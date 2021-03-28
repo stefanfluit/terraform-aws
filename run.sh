@@ -24,6 +24,8 @@ fi
 declare args_
 args_="${1}"
 
+cli_log "Logs can be found in ${LOG_LOG}"
+
 case "${args_}" in
         --destroy)
             stamp_logfile "terraform"
@@ -103,7 +105,7 @@ curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_API_KEY}" --header "Conten
 
 # Clone repo and install requirements
 cli_log "Cloning repo on the server.."
-ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "git clone --single-branch --branch master git@gitlab.com:Santralos/pnd-binance.git /home/${SSH_USER}/repos/pnd-binance --depth=1" &> /dev/null
+ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "git clone --single-branch --branch master ${DEPLOY_REPO} /home/${SSH_USER}/repos/pnd-binance --depth=1" &> /dev/null
 cli_log "Fetching rest of the repo.."
 ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "cd /home/${SSH_USER}/repos/pnd-binance && git fetch --depth=10" &> /dev/null
 
