@@ -5,7 +5,19 @@ cli_log() {
     timestamp_=$(date +"%H:%M")
     local arg_
     arg_="${1}"
-    printf "PnD Binance Server - %s: %s\n" "${timestamp_}" "${arg_}"
+    local missing_value
+    missing_value="${2}"
+    local bash_var
+    bash_var="${3}"
+
+    case "${arg_}" in
+        --read)
+            read -p "PnD Binance Server - ${timestamp_}: Please enter value for ${missing_value}: " "${bash_var}" 
+            ;;
+
+        *)
+            printf "PnD Binance Server - %s: %s\n" "${timestamp_}" "${arg_}"
+    esac
 }
 
 install_aws() {
@@ -46,12 +58,12 @@ check_installed() {
       fi
     done
 }
-
+# cli_log --read "Gitlab API key" "GITLAB_API_KEY"
 check_gitlab_key() {
     if [ -n "${GITLAB_API_KEY}" ]; then
       cli_log "Gitlab API Key found: ${GITLAB_API_KEY}"
     else
-      cli_log "Set Gitlab API key: " && read -s GITLAB_API_KEY
+      cli_log --read "Gitlab API key" "GITLAB_API_KEY"
         if [[ -z "${GITLAB_API_KEY}" ]]; then
           cli_log "No input entered, exit script."
           exit 1;
@@ -65,7 +77,7 @@ check_ssh_key() {
   if [ -n "${SSH_KEY}" ]; then
     cli_log "SSH key found."
   else
-    cli_log "Set SSH key: " && read -s SSH_KEY
+    cli_log --read "SSH public key" "SSH_KEY"
       if [[ -z "${SSH_KEY}" ]]; then
         cli_log "No SSH key detected, creating one."
         ssh-keygen -b 4096 -t rsa -f /home/${SSH_USER}/.ssh/id_rsa -C "${SSH_USER}" -N "" &> /dev/null
@@ -108,7 +120,7 @@ check_username() {
   if [ -n "${SSH_USER}" ]; then
     cli_log "SSH username found: ${SSH_USER}"
   else
-    cli_log "Set SSH username: " && read -s SSH_USER
+    cli_log --read "SSH username" "SSH_USER"
       if [[ -z "${SSH_USER}" ]]; then
         cli_log "No SSH username detected, exit script."
         exit 1;
@@ -122,7 +134,7 @@ check_aws_region() {
   if [ -n "${AWS_REGION}" ]; then
     cli_log "AWS Region found: ${AWS_REGION}"
   else
-    cli_log "Set AWS region: " && read -s AWS_REGION
+    cli_log --read "AWS Region" "AWS_REGION"
       if [[ -z "${AWS_REGION}" ]]; then
         cli_log "No AWS Region detected, exit script."
         exit 1;
@@ -136,7 +148,7 @@ check_aws_instance_type() {
   if [ -n "${AWS_INSTANCE}" ]; then
     cli_log "AWS Instance type: ${AWS_INSTANCE}"
   else
-    cli_log "Set AWS Instance type: " && read -s AWS_INSTANCE
+    cli_log --read "AWS Instance type" "AWS_INSTANCE"
       if [[ -z "${AWS_INSTANCE}" ]]; then
         cli_log "No AWS Instance detected, exit script."
         exit 1;
