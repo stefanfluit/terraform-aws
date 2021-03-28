@@ -7,7 +7,7 @@ export BASENAME_REPO=$(basename "${DEPLOY_REPO}" .git)
 export GIT_DEPTH="10"
 export SSH_USER="$(whoami)"
 
-# Alerting
+# Alerting, only set what you want to use.
 export DISCORD_WEBHOOK=""
 export SLACK_WEBHOOK=""
 export SLACK_CHANNEL=""
