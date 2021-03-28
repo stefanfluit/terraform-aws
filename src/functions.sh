@@ -58,7 +58,7 @@ check_installed() {
       fi
     done
 }
-# cli_log --read "Gitlab API key" "GITLAB_API_KEY"
+
 check_gitlab_key() {
     if [ -n "${GITLAB_API_KEY}" ]; then
       cli_log "Gitlab API Key found: ${GITLAB_API_KEY}"
