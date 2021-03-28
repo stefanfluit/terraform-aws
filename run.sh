@@ -4,6 +4,9 @@
 declare DIR
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
+# Sourcing configurations and functions
+. "${DIR}/src/functions.sh"
+
 declare config_file_param
 config_file_param="${2}"
 
@@ -17,9 +20,6 @@ else
     cli_log "${config_file} does not exist, defaulting to config in repo."
     source "${DIR}/src/config.sh"
 fi
-
-# Sourcing configurations and functions
-. "${DIR}/src/functions.sh"
 
 declare args_
 args_="${1}"
