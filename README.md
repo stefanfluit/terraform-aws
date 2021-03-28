@@ -38,6 +38,11 @@ To destroy the server and infrastructure:
 ./run.sh --destroy
 ```
 
+To run with a local config:
+```
+./run.sh --run --config-file=/path/to/config/file.sh
+```
+
 Before you run:
 It's best to install Terraform and AWS yourself. Run "aws configure" after installing.
 ```
