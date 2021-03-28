@@ -4,8 +4,18 @@
 declare DIR
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
+declare config_file
+config_file="${2}"
+
+if [ -f "${config_file}" ]; then
+    cli_log "${config_file} exists."
+    source "${config_file}"
+else 
+    cli_log "${config_file} does not exist, defaulting to config in repo."
+    source "${DIR}/src/config.sh"
+fi
+
 # Sourcing configurations and functions
-. "${DIR}/src/config.sh"
 . "${DIR}/src/functions.sh"
 
 declare args_
