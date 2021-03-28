@@ -137,7 +137,20 @@ run_test() {
   cd "${DIR}/src/testing" && vagrant up
 }
 
+check_version() {
+  local repo_url="https://raw.githubusercontent.com/stefanfluit/terraform-aws/master/VERSION"
+  local version=$(wget -O- -q ${repo_url} | grep -Eo '[0-9].{1,4}')
+  local local_version=$(cat "${DIR}/VERSION" | grep -Eo '[0-9].{1,4}')
+
+  if (( $(bc <<<"${version} > ${local_version}") )); then 
+      cli_log "I reccomend you do a git pull in the repo directory to fetch latest additions."
+  else
+      cli_log "On latest version, proceeding.."
+  fi
+}
+
 run_init() {
+    check_version
     check_installed "aws" "terraform"
     check_gitlab_key
     check_ssh_key
