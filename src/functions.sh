@@ -15,6 +15,15 @@ install_aws() {
     aws configure
 }
 
+stamp_logfile() {
+  local TOOL_TAG
+  TOOL_TAG="${1}"
+  # Print stamp to the log file
+  local DATE_STAMP
+  DATE_STAMP=$(date '+%d/%m/%Y %H:%M:%S')
+  printf "%s ##################################### %s\n" "${TOOL_TAG}" "${DATE_STAMP}" >> "${LOG_LOC}"
+}
+
 install_terraform() {
     curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
     sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
