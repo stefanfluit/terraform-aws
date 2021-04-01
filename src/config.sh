@@ -26,3 +26,7 @@ export SSH_ID_RSA=$(echo "${SSH_KEY}" | cut -f1,2 -d'.')
 export TMP_DIR="/tmp/pnd-server"
 export VERSION_URL="https://raw.githubusercontent.com/stefanfluit/terraform-aws/master/VERSION"
 export LOG_LOG="/home/${SSH_USER}/.pnd-binance-builder.log"
+
+# MongoDB
+export MONGO_HOST=""                                # The Mongo host.
+export MONGO_SSH_USER=""                            # The user you use to log in to the Mongo host.
