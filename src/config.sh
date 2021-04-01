@@ -28,6 +28,7 @@ export VERSION_URL="https://raw.githubusercontent.com/stefanfluit/terraform-aws/
 export LOG_LOG="/home/${SSH_USER}/.pnd-binance-builder.log"                                             # The log location for this script.
 
 # MongoDB
+export ENABLE_MONGO=""                                                                                  # Set to 'enabled' and fill in the variables below to add the EC2 IP to the the MongoDB server UFW firewall and allow traffic on MONGO_PORT
 export MONGO_HOST=""                                                                                    # The Mongo host.
 export MONGO_SSH_USER=""                                                                                # The user you use to log in to the Mongo host.
 export MONGO_PORT="27017"                                                                               # Mongo default port
