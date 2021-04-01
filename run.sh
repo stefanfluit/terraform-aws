@@ -7,6 +7,9 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 # Sourcing configurations and functions
 . "${DIR}/src/functions.sh"
 
+declare set_mongo
+set_mongo="${3}"
+
 declare config_file_param
 config_file_param="${2}"
 
@@ -110,7 +113,15 @@ cli_log "Fetching rest of the repo.."
 ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "cd /home/${SSH_USER}/repos/${BASENAME_REPO} && git fetch --depth=${GIT_DEPTH}" &> /dev/null
 
 cli_log "Installing Python requirements.."
-ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "cd /home/${SSH_USER}/repos/${BASENAME_REPO} && pip3 install -r requirements.txt" &> /dev/null && cli_log "Done."
+ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "cd /home/${SSH_USER}/repos/${BASENAME_REPO} && pip3 install -r requirements.txt" &> /dev/null && cli_log "Done installing python requirements."
+
+if [ "${set_mongo}" = "--set-mongo" ]; then
+    cli_log "Adding EC2 IP to the MongoDB server.."
+    ssh "${MONGO_SSH_USER}"@"${MONGO_HOST}" "sudo ufw allow from ${AWS_IP} to any port ${MONGO_PORT} && sudo ufw reload" &> /dev/null && \
+    cli_log "Done, firewall reloaded."
+else
+    cli_log "Not adding server to MongoDB, did not read parameter."
+fi
 
 # Clean up
 cli_log "Archiving old user_data.yml.." && mv "${DIR}"/terraform/deploy/user_data.yml "${TMP_DIR}/user_data.yml_old" &> /dev/null
@@ -118,4 +129,5 @@ cli_log "Archiving old Terraform Provider file" && mv "${DIR}"/terraform/deploy/
 
 cli_log "Access server: ssh ${SSH_USER}@${AWS_IP}"
 send_alert "Access server: ssh ${SSH_USER}@${AWS_IP}"
+
 stamp_logfile "DONE"
