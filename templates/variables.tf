@@ -1,5 +1,5 @@
 variable "aws_region" {
-    default = "ap-northeast-3"
+    default = "instanceregion"
 }
 
 variable "ec2_count" {
