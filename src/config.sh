@@ -30,3 +30,4 @@ export LOG_LOG="/home/${SSH_USER}/.pnd-binance-builder.log"                     
 # MongoDB
 export MONGO_HOST=""                                                                                    # The Mongo host.
 export MONGO_SSH_USER=""                                                                                # The user you use to log in to the Mongo host.
+export MONGO_PORT="27017"                                                                               # Mongo default port
