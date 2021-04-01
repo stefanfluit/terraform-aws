@@ -17,6 +17,7 @@ cli_log() {
 
         *)
             printf "PnD Binance Server - %s: %s\n" "${timestamp_}" "${arg_}"
+            printf "PnD Binance Server - %s: %s\n" "${timestamp_}" "${arg_}" >> "${LOG_LOC}"
     esac
 }
 
@@ -180,6 +181,14 @@ check_version() {
       cli_log "I reccomend you do a git pull in the repo directory to fetch latest additions."
   else
       cli_log "On latest version, proceeding.."
+  fi
+}
+
+check_logfile() {
+  if [ -f "$FILE" ]; then
+      echo "$FILE exists."
+  else 
+      echo "$FILE does not exist."
   fi
 }
 
