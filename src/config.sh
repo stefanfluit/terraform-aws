@@ -16,6 +16,7 @@ export SLACK_CHANNEL=""                                                         
 export AWS_REGION="ap-northeast-3"                                                                      # Change region here, it will use sed to replace it in the file of Terraform. Overriden by ~/.aws/config.
 export AWS_PROFILE="default"                                                                            # Usually your AWS profile is default. 
 export AWS_INSTANCE="t3.nano"                                                                           # The AWS instance, change here but don't go lower as it is not compatible with the projects region.
+export AWS_COUNT="1"                                                                                    # Defines the amount of EC2 instances. Setting a value higher than 1 will break the script but not creation of VM's. Will add later, if needed.
 
 # SSH Key
 export SSH_KEY="/home/${SSH_USER}/.ssh/id_rsa.pub"                                                      # The path to pubkey, here to be changed if it does not equal to your username.
