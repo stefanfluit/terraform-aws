@@ -7,9 +7,6 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 # Sourcing configurations and functions
 . "${DIR}/src/functions.sh"
 
-declare set_mongo
-set_mongo="${3}"
-
 declare config_file_param
 config_file_param="${2}"
 
@@ -115,7 +112,7 @@ ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "cd /home/${SSH_USER}/
 cli_log "Installing Python requirements.."
 ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "cd /home/${SSH_USER}/repos/${BASENAME_REPO} && pip3 install -r requirements.txt" &> /dev/null && cli_log "Done installing python requirements."
 
-if [ "${set_mongo}" = "--set-mongo" ]; then
+if [ "${ENABLE_MONGO}" = "enable" ]; then
     cli_log "Adding EC2 IP to the MongoDB server.."
     ssh "${MONGO_SSH_USER}"@"${MONGO_HOST}" "sudo ufw allow from ${AWS_IP} to any port ${MONGO_PORT} && sudo ufw reload" &> /dev/null && \
     cli_log "Done, firewall reloaded."
