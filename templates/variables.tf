@@ -3,7 +3,7 @@ variable "aws_region" {
 }
 
 variable "ec2_count" {
-  default = "1"
+  default = "instancecount"
 }
 
 variable "instance_type" {
