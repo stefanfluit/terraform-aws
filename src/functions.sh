@@ -185,14 +185,16 @@ check_version() {
 }
 
 check_logfile() {
-  if [ -f "$FILE" ]; then
-      echo "$FILE exists."
+  if [ -f "${LOG_LOC}" ]; then
+      cli_log "Log file found, proceeding."
   else 
-      echo "$FILE does not exist."
+      cli_log "Log file not found, creating.."
+      touch "${LOG_LOC}"
   fi
 }
 
 run_init() {
+    check_logfile
     check_version
     check_installed "aws" "terraform"
     check_gitlab_key
