@@ -172,8 +172,15 @@ check_aws_region_config() {
 }
 
 run_test() {
-  sed "s|sshuser|${SSH_USER}|g" "${DIR}"/templates/user_data.yml > /tmp/pnd-server/cloud-init.yml
-  cd "${DIR}/src/testing" && vagrant up &> "${LOG_LOC}"
+  cli_log "Determining current state of the Box.."
+  cd "${DIR}/src/testing" && vagrant status &> "${LOG_LOC}"
+  if [ "${?}" == "running" ]; then
+    cli_log "Test build is running already, use ./run.sh --ssh-test to SSH into the machine."
+  else
+    cli_log "Test build not build yet. Building.."
+    cd "${DIR}/src/testing" && vagrant up &> "${LOG_LOC}" && \
+    cli_log "Done! Run ./run.sh --ssh-test to SSH into the machine." || cli_log "Something went wrong building the test build. Please check logs at ${LOG_LOC}." && exit 1;
+  fi
 }
 
 vagrant_ssh() {
