@@ -56,6 +56,10 @@ case "${args_}" in
             run_test
             exit
             ;;
+        --ssh-test)
+            vagrant_ssh
+            exit
+            ;;
 
         *)
             cli_log "No parameter specified."
