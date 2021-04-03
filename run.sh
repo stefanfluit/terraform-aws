@@ -56,7 +56,7 @@ case "${args_}" in
         --test)
             stamp_logfile "vagrant"
             cli_log "Testing build.."
-            run_test
+            run_test && cli_log "Done!"
             exit
             ;;
 
