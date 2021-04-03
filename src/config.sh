@@ -36,3 +36,6 @@ export MONGO_PORT="27017"                                                       
 
 # Vagrant options
 export VAGRANT_EXPERIMENTAL="cloud_init,disks"                                                          # Enable experimental for cloud-init
+
+# Other variables
+export WAN_IP=$(dig TXT +short o-o.myaddr.l.google.com @ns1.google.com | awk -F'"' '{ print $2}')       # Attempt to get your IP for the Vagrant file > gitlab
