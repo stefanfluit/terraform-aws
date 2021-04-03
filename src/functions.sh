@@ -73,7 +73,21 @@ check_gitlab_key() {
           cli_log "No input entered, exit script."
           exit 1;
         else
-          cli_log "Input detected, API key is ${GITLAB_API_KEY}"
+          cli_log "Input detected, API key is: ${GITLAB_API_KEY}"
+        fi
+    fi
+}
+
+check_wan_ip() {
+    if [ -n "${WAN_IP}" ]; then
+      cli_log "WAN IP detected, IP is: ${WAN_IP}"
+    else
+      cli_log --read "What is your WAN IP: " "WAN_IP"
+        if [[ -z "${WAN_IP}" ]]; then
+          cli_log "No input entered, exit script."
+          exit 1;
+        else
+          cli_log "WAN IP detected, IP is: ${WAN_IP}"
         fi
     fi
 }
@@ -182,10 +196,10 @@ run_test() {
     cli_log "Adding your SSH key to user_data.yml.." && \
     cli_log "Adding your Username to user_data.yml.." && sed "s|sshuser|vagrant|g" "${DIR}"/templates/user_data.yml > /tmp/pnd-server/cloud-init.yml
     cli_log "Destroying previous box if existing, creating new box and rebuilding.."
-    cd "${DIR}/src/testing" && destroy_vagrant && vagrant up &> "${LOG_LOC}" && \
-    cli_log "Done! Run ./run.sh --ssh-test to SSH into the machine." || cli_log "Something went wrong building the test build. Please check logs at ${LOG_LOC}." && exit 1;
-    cli_log "Cleaning up.." rm -rf /tmp/pnd-server/cloud-init.yml
-    setup_vagrant_box && cli_log "Test build is done, run ./run.sh --ssh-test to SSH into the machine."
+    cd "${DIR}/src/testing" && destroy_vagrant && \
+    cli_log "Building new box.." && vagrant up &> "${LOG_LOC}"
+    setup_vagrant_box && cli_log "Cleaning up.." rm -rf /tmp/pnd-server/cloud-init.yml && \
+    cli_log "Test build is done, run ./run.sh --ssh-test to SSH into the machine."
   fi
 }
 
@@ -203,6 +217,7 @@ destroy_vagrant() {
     rm -rf "${VBOX_DIR}" &> /dev/null
     rm -rf /tmp/pnd-server/cloud-init.yml &> /dev/null
   fi
+  cli_log "Destroyed Vagrant setup."
 }
 
 check_version() {
@@ -242,16 +257,25 @@ vagrant_command() {
 }
 
 setup_vagrant_box() {
+  vagrant_command "cat /home/vagrant/.ssh/id_ed25519.pub" | grep ssh &> "${TMP_DIR}/pubkey-vagrant.pub"
   local ROOT_KEY_VAGRANT
-  ROOT_KEY_VAGRANT=$(vagrant_command "cat /home/vagrant/.ssh/id_ed25519.pub" | grep ssh)
+  ROOT_KEY_VAGRANT="$(cat ${TMP_DIR}/pubkey-vagrant.pub)"
   cli_log "Adding fetched SSH pub key as Gitlab deploy key.."
-  curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_API_KEY}" --header "Content-Type:application/json" --data "{\"title\": \"pnd-server-${SSH_USER}\", \"key\": \"${ROOT_KEY_VAGRANT}\", \"can_push\": \"true\"}" "https://gitlab.com/api/v4/projects/24216317/deploy_keys" &> "${LOG_LOC}"
+  curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_API_KEY}" --header "Content-Type:application/json" --data "{\"title\": \"pnd-server-vagrant\", \"key\": \"${ROOT_KEY_VAGRANT}\", \"can_push\": \"true\"}" "https://gitlab.com/api/v4/projects/24216317/deploy_keys" &> "${LOG_LOC}"
   cli_log "Cloning repo to the test server.."
   vagrant_command "git clone --single-branch --branch master ${DEPLOY_REPO} /home/vagrant/repos/${BASENAME_REPO} --depth=1" &> "${LOG_LOC}"
   cli_log "Fetching rest of the repo.."
   vagrant_command "cd /home/vagrant/repos/${BASENAME_REPO} && git fetch --depth=${GIT_DEPTH}" &> "${LOG_LOC}"
   cli_log "Installing Python requirements.."
   vagrant_command "cd /home/vagrant/repos/${BASENAME_REPO} && pip3 install -r requirements.txt" &> "${LOG_LOC}"
+  if [ "${ENABLE_MONGO}" = "enable" ]; then
+    check_wan_ip && \
+    cli_log "Adding your WAN IP to the MongoDB server.."
+    ssh "${MONGO_SSH_USER}"@"${MONGO_HOST}" "sudo ufw allow from ${WAN_IP} to any port ${MONGO_PORT} && sudo ufw reload" &> "${LOG_LOC}" && \
+    cli_log "Done, firewall reloaded."
+  else
+    cli_log "Not adding test build to MongoDB, did not read parameter."
+  fi
 }
 
 run_init() {
