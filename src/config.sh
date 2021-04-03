@@ -33,3 +33,6 @@ export ENABLE_MONGO=""                                                          
 export MONGO_HOST=""                                                                                    # The Mongo host.
 export MONGO_SSH_USER=""                                                                                # The user you use to log in to the Mongo host.
 export MONGO_PORT="27017"                                                                               # Mongo default port
+
+# Vagrant options
+export VAGRANT_EXPERIMENTAL="cloud_init,disks"                                                          # Enable experimental for cloud-init
