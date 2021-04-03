@@ -14,9 +14,9 @@ cli_log() {
         --read)
             read -p "PnD Binance Server - ${timestamp_}: Please enter value for ${missing_value}: " "${bash_var}" 
             ;;
-            
+
         --no-log)
-            printf "PnD Binance Server - %s: %s\n" "${timestamp_}" "${arg_}" 
+            printf "PnD Binance Server - %s: %s\n" "${timestamp_}" "${2}" 
             ;;
 
         *)
@@ -167,7 +167,7 @@ check_aws_region_config() {
   if sed -n "/${AWS_PROFILE}{n;p;}" ~/.aws/config | grep -e ${AWS_REGION}; then
     cli_log "Regions match, proceeding."
   else
-    cli_log "AWS Regions don't match, aws will override with the default set in ~/.aws/config for profile ${AWS_{PROFILE}." && exit
+    cli_log "AWS Regions don't match, aws will override with the default set in ~/.aws/config for profile ${AWS_{PROFILE}."
   fi
 }
 
