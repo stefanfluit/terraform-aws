@@ -56,8 +56,15 @@ case "${args_}" in
             run_test
             exit
             ;;
+
         --ssh-test)
             vagrant_ssh
+            exit
+            ;;
+
+        --destroy-test)
+            cli_log "Destroying Vagrant setup.."
+            destroy_vagrant
             exit
             ;;
 
