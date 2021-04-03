@@ -177,7 +177,10 @@ run_test() {
   if [ "${?}" == "running" ]; then
     cli_log "Test build is running already, use ./run.sh --ssh-test to SSH into the machine."
   else
+  # /tmp/pnd-server/cloud-init.yml
     cli_log "Test build not build yet. Building.."
+    cli_log "Adding your SSH key to user_data.yml.." && \
+    cli_log "Adding your Username to user_data.yml.." && sed "s|sshuser|${SSH_USER}|g" "${DIR}"/templates/user_data.yml > /tmp/pnd-server/cloud-init.yml
     cd "${DIR}/src/testing" && vagrant up &> "${LOG_LOC}" && \
     cli_log "Done! Run ./run.sh --ssh-test to SSH into the machine." || cli_log "Something went wrong building the test build. Please check logs at ${LOG_LOC}." && exit 1;
   fi
@@ -211,6 +214,13 @@ check_logfile() {
   else 
       cli_log "Log file not found, creating.."
       touch "${LOG_LOC}"
+  fi
+  # Check directory
+  if [ -d "/path/to/dir" ]; then
+    cli_log "Log dir found, proceeding."
+  else
+    cli_log "Log dir not found, creating.."
+    mkdir -pv "${TMP_DIR}" &> "${LOG_LOC}"
   fi
 }
 
