@@ -181,7 +181,8 @@ run_test() {
     cli_log "Test build not build yet. Building.."
     cli_log "Adding your SSH key to user_data.yml.." && \
     cli_log "Adding your Username to user_data.yml.." && sed "s|sshuser|${SSH_USER}|g" "${DIR}"/templates/user_data.yml > /tmp/pnd-server/cloud-init.yml
-    cd "${DIR}/src/testing" && vagrant up &> "${LOG_LOC}" && \
+    cli_log "Destroying previous box if existing, creating new box and rebuilding.."
+    cd "${DIR}/src/testing" && destroy_vagrant && vagrant up &> "${LOG_LOC}" && \
     cli_log "Done! Run ./run.sh --ssh-test to SSH into the machine." || cli_log "Something went wrong building the test build. Please check logs at ${LOG_LOC}." && exit 1;
   fi
 }
@@ -191,7 +192,14 @@ vagrant_ssh() {
 }
 
 destroy_vagrant() {
-  cd "${DIR}/src/testing" && vagrant destroy --force &> /dev/null
+  cli_log "Destroying Vagrant setup.."
+  cd "${DIR}/src/testing" && vagrant destroy --force &> "${LOG_LOC}"
+  # Rm folder or Virtualbox will cry
+  local VBOX_DIR
+  VBOX_DIR="/home/${SSH_USER}/VirtualBox VMs/binance-pnd"
+  if [ -d "${VBOX_DIR}" ]; then
+    rm -rf "${VBOX_DIR}"
+  fi
 }
 
 check_version() {
