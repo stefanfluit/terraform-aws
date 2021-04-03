@@ -193,8 +193,10 @@ destroy_vagrant() {
 
 check_version() {
   local repo_url="https://raw.githubusercontent.com/stefanfluit/terraform-aws/master/VERSION"
-  local version=$(wget -O- -q ${repo_url} | grep -Eo '[0-9].{1,4}')
-  local local_version=$(cat "${DIR}/VERSION" | grep -Eo '[0-9].{1,4}')
+  local version
+  version=$(wget -O- -q ${repo_url} | grep -Eo '[0-9].{1,4}')
+  local local_version
+  local_version=$(cat "${DIR}/VERSION" | grep -Eo '[0-9].{1,4}')
 
   if (( $(bc <<<"${version} > ${local_version}") )); then 
       cli_log "I reccomend you do a git pull in the repo directory to fetch latest additions."
