@@ -180,10 +180,12 @@ run_test() {
   # /tmp/pnd-server/cloud-init.yml
     cli_log "Test build not build yet. Building.."
     cli_log "Adding your SSH key to user_data.yml.." && \
-    cli_log "Adding your Username to user_data.yml.." && sed "s|sshuser|${SSH_USER}|g" "${DIR}"/templates/user_data.yml > /tmp/pnd-server/cloud-init.yml
+    cli_log "Adding your Username to user_data.yml.." && sed "s|sshuser|vagrant|g" "${DIR}"/templates/user_data.yml > /tmp/pnd-server/cloud-init.yml
     cli_log "Destroying previous box if existing, creating new box and rebuilding.."
     cd "${DIR}/src/testing" && destroy_vagrant && vagrant up &> "${LOG_LOC}" && \
     cli_log "Done! Run ./run.sh --ssh-test to SSH into the machine." || cli_log "Something went wrong building the test build. Please check logs at ${LOG_LOC}." && exit 1;
+    cli_log "Cleaning up.." rm -rf /tmp/pnd-server/cloud-init.yml
+    setup_vagrant_box && cli_log "Test build is done, run ./run.sh --ssh-test to SSH into the machine."
   fi
 }
 
@@ -198,7 +200,8 @@ destroy_vagrant() {
   local VBOX_DIR
   VBOX_DIR="/home/${SSH_USER}/VirtualBox VMs/binance-pnd"
   if [ -d "${VBOX_DIR}" ]; then
-    rm -rf "${VBOX_DIR}"
+    rm -rf "${VBOX_DIR}" &> /dev/null
+    rm -rf /tmp/pnd-server/cloud-init.yml &> /dev/null
   fi
 }
 
@@ -230,6 +233,25 @@ check_logfile() {
     cli_log "Log dir not found, creating.."
     mkdir -pv "${TMP_DIR}" &> "${LOG_LOC}"
   fi
+}
+
+vagrant_command() {
+  local command_
+  command_="${1}"
+  cd "${DIR}/src/testing" && vagrant ssh -- -t "${command_}" &> "${LOG_LOC}"
+}
+
+setup_vagrant_box() {
+  local ROOT_KEY_VAGRANT
+  ROOT_KEY_VAGRANT=$(vagrant_command "cat /home/vagrant/.ssh/id_ed25519.pub" | grep ssh)
+  cli_log "Adding fetched SSH pub key as Gitlab deploy key.."
+  curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_API_KEY}" --header "Content-Type:application/json" --data "{\"title\": \"pnd-server-${SSH_USER}\", \"key\": \"${ROOT_KEY_VAGRANT}\", \"can_push\": \"true\"}" "https://gitlab.com/api/v4/projects/24216317/deploy_keys" &> "${LOG_LOC}"
+  cli_log "Cloning repo to the test server.."
+  vagrant_command "git clone --single-branch --branch master ${DEPLOY_REPO} /home/vagrant/repos/${BASENAME_REPO} --depth=1" &> "${LOG_LOC}"
+  cli_log "Fetching rest of the repo.."
+  vagrant_command "cd /home/vagrant/repos/${BASENAME_REPO} && git fetch --depth=${GIT_DEPTH}" &> "${LOG_LOC}"
+  cli_log "Installing Python requirements.."
+  vagrant_command "cd /home/vagrant/repos/${BASENAME_REPO} && pip3 install -r requirements.txt" &> "${LOG_LOC}"
 }
 
 run_init() {
