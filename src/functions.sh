@@ -14,6 +14,10 @@ cli_log() {
         --read)
             read -p "PnD Binance Server - ${timestamp_}: Please enter value for ${missing_value}: " "${bash_var}" 
             ;;
+            
+        --no-log)
+            printf "PnD Binance Server - %s: %s\n" "${timestamp_}" "${arg_}" 
+            ;;
 
         *)
             printf "PnD Binance Server - %s: %s\n" "${timestamp_}" "${arg_}"
@@ -177,7 +181,7 @@ vagrant_ssh() {
 }
 
 destroy_vagrant() {
-  cd "${DIR}/src/testing" && vagrant destroy --force
+  cd "${DIR}/src/testing" && vagrant destroy --force &> /dev/null
 }
 
 check_version() {
