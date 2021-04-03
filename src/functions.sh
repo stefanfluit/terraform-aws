@@ -172,6 +172,10 @@ run_test() {
   cd "${DIR}/src/testing" && vagrant up
 }
 
+vagrant_ssh() {
+  cd "${DIR}/src/testing" && vagrant ssh
+}
+
 check_version() {
   local repo_url="https://raw.githubusercontent.com/stefanfluit/terraform-aws/master/VERSION"
   local version=$(wget -O- -q ${repo_url} | grep -Eo '[0-9].{1,4}')
