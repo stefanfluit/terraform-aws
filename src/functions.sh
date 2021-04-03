@@ -176,6 +176,10 @@ vagrant_ssh() {
   cd "${DIR}/src/testing" && vagrant ssh
 }
 
+destroy_vagrant() {
+  cd "${DIR}/src/testing" && vagrant destroy --force
+}
+
 check_version() {
   local repo_url="https://raw.githubusercontent.com/stefanfluit/terraform-aws/master/VERSION"
   local version=$(wget -O- -q ${repo_url} | grep -Eo '[0-9].{1,4}')
