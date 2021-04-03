@@ -135,7 +135,7 @@ check_username() {
   fi
 }
 
-check_aws_region() {
+check_region() {
   if [ -n "${AWS_REGION}" ]; then
     cli_log "AWS Region found: ${AWS_REGION}"
   else
