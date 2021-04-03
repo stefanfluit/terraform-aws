@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Uncomment this for verbose output.
+set -x
+
 # Finding the directory we're in
 declare DIR
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
@@ -14,17 +17,17 @@ declare config_file
 config_file=$(echo ${config_file_param} | grep -oP '=\K.*')
 
 if [ -f "${config_file}" ]; then
-    cli_log "${config_file} exists."
+    cli_log --no-log "${config_file} exists."
     source "${config_file}"
 else 
-    cli_log "No config file parameter detected, defaulting to config in repo."
+    cli_log --no-log "No config file parameter detected, defaulting to config in repo."
     source "${DIR}/src/config.sh"
 fi
 
 declare args_
 args_="${1}"
 
-cli_log "Logs can be found in ${LOG_LOG}"
+cli_log "Logs can be found in ${LOG_LOC}"
 
 case "${args_}" in
         --destroy)
@@ -65,6 +68,7 @@ case "${args_}" in
         --destroy-test)
             cli_log "Destroying Vagrant setup.."
             destroy_vagrant
+            cli_log "Done!"
             exit
             ;;
 
