@@ -49,11 +49,12 @@ case "${args_}" in
 
         --run)
             stamp_logfile "terraform"
-            cli_log "Building the structure.." && run_init
+            cli_log "Building the structure.." && run_init --terraform
             # Without the exit the script will just continue and rebuild the structure
             ;;
 
         --test)
+            run_init --vagrant
             stamp_logfile "vagrant"
             cli_log "Testing build.."
             run_test && cli_log "Done!"

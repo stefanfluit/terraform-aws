@@ -192,8 +192,7 @@ run_test() {
     cli_log "Test build is running already, use ./run.sh --ssh-test to SSH into the machine."
   else
   # /tmp/pnd-server/cloud-init.yml
-    cli_log "Test build not build yet. Building.."
-    cli_log "Adding your SSH key to user_data.yml.." && \
+    cli_log "VM not running. Building.."
     cli_log "Adding your Username to user_data.yml.." && sed "s|sshuser|vagrant|g" "${DIR}"/templates/user_data.yml > /tmp/pnd-server/cloud-init.yml
     cli_log "Destroying previous box if existing, creating new box and rebuilding.."
     cd "${DIR}/src/testing" && destroy_vagrant && \
@@ -279,14 +278,28 @@ setup_vagrant_box() {
 }
 
 run_init() {
-    check_logfile
-    check_version
-    check_installed "aws" "terraform"
-    check_gitlab_key
-    check_ssh_key
-    check_username
-    check_region
-    check_aws_region
-    check_aws_region_config
-    check_aws_instance_type
+    local arg_
+    arg_="${1}"
+    case "${arg_}" in
+      --terraform)
+          check_logfile
+          check_version
+          check_installed "aws" "terraform"
+          check_gitlab_key
+          check_ssh_key
+          check_username
+          check_region
+          check_aws_region
+          check_aws_region_config
+          check_aws_instance_type
+          ;;
+      --vagrant)
+          check_logfile
+          check_version
+          check_gitlab_key
+          ;;
+      *)
+          printf "PnD Binance Server - %s: %s\n" "${timestamp_}" "${arg_}"
+          printf "PnD Binance Server - %s: %s\n" "${timestamp_}" "${arg_}" >> "${LOG_LOC}"
+    esac
 }
