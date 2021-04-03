@@ -66,7 +66,6 @@ case "${args_}" in
             ;;
 
         --destroy-test)
-            cli_log "Destroying Vagrant setup.."
             destroy_vagrant
             cli_log "Done!"
             exit
