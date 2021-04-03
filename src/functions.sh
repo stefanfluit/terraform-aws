@@ -173,7 +173,7 @@ check_aws_region_config() {
 
 run_test() {
   sed "s|sshuser|${SSH_USER}|g" "${DIR}"/templates/user_data.yml > /tmp/pnd-server/cloud-init.yml
-  cd "${DIR}/src/testing" && vagrant up
+  cd "${DIR}/src/testing" && vagrant up &> "${LOG_LOC}"
 }
 
 vagrant_ssh() {
