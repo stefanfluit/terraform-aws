@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Uncomment this for verbose output.
-set -x
+#set -x
 
 # Finding the directory we're in
 declare DIR
