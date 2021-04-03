@@ -61,7 +61,7 @@ case "${args_}" in
             ;;
 
         --ssh-test)
-            vagrant_ssh
+            vagrant_ssh && setup_vagrant_box
             exit
             ;;
 
@@ -119,28 +119,28 @@ ROOT_KEY=$(ssh -o StrictHostKeyChecking=no ${SSH_USER}@${AWS_IP} "cat /home/${SS
 
 # Add deploy key to server
 cli_log "Adding fetched SSH pub key as Gitlab deploy key.."
-curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_API_KEY}" --header "Content-Type:application/json" --data "{\"title\": \"pnd-server-${SSH_USER}\", \"key\": \"${ROOT_KEY}\", \"can_push\": \"true\"}" "https://gitlab.com/api/v4/projects/24216317/deploy_keys" &> /dev/null
+curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_API_KEY}" --header "Content-Type:application/json" --data "{\"title\": \"pnd-server-${SSH_USER}\", \"key\": \"${ROOT_KEY}\", \"can_push\": \"true\"}" "https://gitlab.com/api/v4/projects/24216317/deploy_keys" &> "${LOG_LOC}"
 
 # Clone repo and install requirements
 cli_log "Cloning repo on the server.."
-ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "git clone --single-branch --branch master ${DEPLOY_REPO} /home/${SSH_USER}/repos/${BASENAME_REPO} --depth=1" &> /dev/null
+ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "git clone --single-branch --branch master ${DEPLOY_REPO} /home/${SSH_USER}/repos/${BASENAME_REPO} --depth=1" &> "${LOG_LOC}"
 cli_log "Fetching rest of the repo.."
-ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "cd /home/${SSH_USER}/repos/${BASENAME_REPO} && git fetch --depth=${GIT_DEPTH}" &> /dev/null
+ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "cd /home/${SSH_USER}/repos/${BASENAME_REPO} && git fetch --depth=${GIT_DEPTH}" &> "${LOG_LOC}"
 
 cli_log "Installing Python requirements.."
-ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "cd /home/${SSH_USER}/repos/${BASENAME_REPO} && pip3 install -r requirements.txt" &> /dev/null && cli_log "Done installing python requirements."
+ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "cd /home/${SSH_USER}/repos/${BASENAME_REPO} && pip3 install -r requirements.txt" &> "${LOG_LOC}" && cli_log "Done installing python requirements."
 
 if [ "${ENABLE_MONGO}" = "enable" ]; then
     cli_log "Adding EC2 IP to the MongoDB server.."
-    ssh "${MONGO_SSH_USER}"@"${MONGO_HOST}" "sudo ufw allow from ${AWS_IP} to any port ${MONGO_PORT} && sudo ufw reload" &> /dev/null && \
+    ssh "${MONGO_SSH_USER}"@"${MONGO_HOST}" "sudo ufw allow from ${AWS_IP} to any port ${MONGO_PORT} && sudo ufw reload" &> "${LOG_LOC}" && \
     cli_log "Done, firewall reloaded."
 else
     cli_log "Not adding server to MongoDB, did not read parameter."
 fi
 
 # Clean up
-cli_log "Archiving old user_data.yml.." && mv "${DIR}"/terraform/deploy/user_data.yml "${TMP_DIR}/user_data.yml_old" &> /dev/null
-cli_log "Archiving old Terraform Provider file" && mv "${DIR}"/terraform/deploy/provider.tf "${TMP_DIR}/user_data.yml_old" &> /dev/null
+cli_log "Archiving old user_data.yml.." && mv "${DIR}"/terraform/deploy/user_data.yml "${TMP_DIR}/user_data.yml_old" &> "${LOG_LOC}"
+cli_log "Archiving old Terraform Provider file" && mv "${DIR}"/terraform/deploy/provider.tf "${TMP_DIR}/user_data.yml_old" &> "${LOG_LOC}"
 
 cli_log "Access server: ssh ${SSH_USER}@${AWS_IP}"
 send_alert "Access server: ssh ${SSH_USER}@${AWS_IP}"
