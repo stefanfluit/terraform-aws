@@ -308,7 +308,7 @@ run_test() {
     cli_log "Destroying previous box if existing, creating new box and rebuilding.."
     cd "${DIR}/src/testing" && destroy_vagrant --test && \
     cli_log "Building new box.." && vagrant up >> "${LOG_LOC}"
-    setup_vagrant_box && cli_log "Cleaning up.." rm -rf /tmp/pnd-server/cloud-init.yml && \
+    setup_vagrant_box --test && cli_log "Cleaning up.." rm -rf /tmp/pnd-server/cloud-init.yml && \
     cli_log "Test build is done, run ./run.sh --ssh-test to SSH into the machine."
   fi
 }
@@ -324,7 +324,7 @@ run_build() {
     cli_log "Destroying previous box if existing, creating new box and rebuilding.."
     cd "${DIR}/src/testing/ci-vagrant" && destroy_vagrant --build && \
     cli_log "Building new box.." && vagrant up >> "${LOG_LOC_BUILD}"
-    setup_vagrant_box && cli_log "Cleaning up.." rm -rf /tmp/pnd-server/cloud-init-ci.yml && \
+    setup_vagrant_box --build && cli_log "Cleaning up.." rm -rf /tmp/pnd-server/cloud-init-ci.yml && \
     cli_log "Test build is done, run ./run.sh --ssh-build to SSH into the machine."
   fi
 }
@@ -341,11 +341,11 @@ setup_vagrant_box() {
         cli_log "Adding fetched SSH pub key as Gitlab deploy key.."
         curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_API_KEY}" --header "Content-Type:application/json" --data "{\"title\": \"pnd-server-vagrant\", \"key\": \"${ROOT_KEY_VAGRANT}\", \"can_push\": \"true\"}" "https://gitlab.com/api/v4/projects/24216317/deploy_keys" >> "${LOG_LOC}"
         cli_log "Cloning repo to the test server.."
-        vagrant_command --test-command "git clone --single-branch --branch master ${DEPLOY_REPO} /home/vagrant/repos/${BASENAME_REPO} --depth=1" >> "${LOG_LOC}"
+        vagrant_ssh --test-command "git clone --single-branch --branch master ${DEPLOY_REPO} /home/vagrant/repos/${BASENAME_REPO} --depth=1" >> "${LOG_LOC}"
         cli_log "Fetching rest of the repo.."
-        vagrant_command --test-command "cd /home/vagrant/repos/${BASENAME_REPO} && git fetch --depth=${GIT_DEPTH}" >> "${LOG_LOC}"
+        vagrant_ssh --test-command "cd /home/vagrant/repos/${BASENAME_REPO} && git fetch --depth=${GIT_DEPTH}" >> "${LOG_LOC}"
         cli_log "Installing Python requirements.."
-        vagrant_command --test-command "cd /home/vagrant/repos/${BASENAME_REPO} && pip3 install -r requirements.txt" >> "${LOG_LOC}"
+        vagrant_ssh --test-command "cd /home/vagrant/repos/${BASENAME_REPO} && pip3 install -r requirements.txt" >> "${LOG_LOC}"
         if [ "${ENABLE_MONGO}" = "enabled" ]; then
           check_wan_ip && \
           cli_log "Adding your WAN IP to the MongoDB server.."
@@ -364,11 +364,11 @@ setup_vagrant_box() {
         cli_log "Adding fetched SSH pub key as Gitlab deploy key.."
         curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_API_KEY}" --header "Content-Type:application/json" --data "{\"title\": \"pnd-server-vagrant\", \"key\": \"${ROOT_KEY_VAGRANT_BUILD}\", \"can_push\": \"true\"}" "https://gitlab.com/api/v4/projects/24216317/deploy_keys" >> "${LOG_LOC_BUILD}"
         cli_log "Cloning repo to the test server.."
-        vagrant_command --build-command "git clone --single-branch --branch master ${DEPLOY_REPO} /home/vagrant/repos/${BASENAME_REPO} --depth=1" >> "${LOG_LOC_BUILD}"
+        vagrant_ssh --build-command "git clone --single-branch --branch master ${DEPLOY_REPO} /home/vagrant/repos/${BASENAME_REPO} --depth=1" >> "${LOG_LOC_BUILD}"
         cli_log "Fetching rest of the repo.."
-        vagrant_command --build-command "cd /home/vagrant/repos/${BASENAME_REPO} && git fetch --depth=${GIT_DEPTH}" >> "${LOG_LOC_BUILD}"
+        vagrant_ssh --build-command "cd /home/vagrant/repos/${BASENAME_REPO} && git fetch --depth=${GIT_DEPTH}" >> "${LOG_LOC_BUILD}"
         cli_log "Installing Python requirements.."
-        vagrant_command --build-command "cd /home/vagrant/repos/${BASENAME_REPO} && pip3 install -r requirements.txt" >> "${LOG_LOC_BUILD}"
+        vagrant_ssh --build-command "cd /home/vagrant/repos/${BASENAME_REPO} && pip3 install -r requirements.txt" >> "${LOG_LOC_BUILD}"
         if [ "${ENABLE_MONGO}" = "enabled" ]; then
           check_wan_ip && \
           cli_log "Adding your WAN IP to the MongoDB server.."
@@ -380,7 +380,7 @@ setup_vagrant_box() {
         ;;
 
       *)
-          cli_log "Error in vagrant_ssh function."
+          cli_log "Error in setup_vagrant_box function."
     esac
 }
 
