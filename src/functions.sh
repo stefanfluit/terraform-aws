@@ -388,12 +388,15 @@ setup_vagrant_box() {
         vagrant_ssh --build-command "cd /home/vagrant/repos/terraform-aws && ./run.sh --run --config-file=/home/vagrant/repos/terraform-aws/src/build-config.sh" >> "${LOG_LOC_BUILD}"
         local AWS_IP_BUILD
         AWS_IP_BUILD=$(grep -P 'ssh vagrant@*' "${LOG_LOC_BUILD}" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b")
-        vagrant_ssh --build-command "ssh vagrant@${AWS_BUILD_IP} \"file /home/vagrant/repos/pnd-binance/requirements.txt && touch /tmp/succes\""
+        cli_log "IP to check status is ${AWS_IP_BUILD}"
+        vagrant_ssh --build-command "ssh vagrant@${AWS_BUILD_IP} \"file /home/vagrant/repos/pnd-binance/requirements.txt && touch /tmp/succes\"" >> "${LOG_LOC_BUILD}"
         scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "${DIR}/src/testing/ci-vagrant/.vagrant/machines/binance-pnd-build/virtualbox/private_key" -P 2222 vagrant@127.0.0.1:/tmp/succes "${TMP_DIR}/succes_result" >> "${LOG_LOC_BUILD}"
         if [ -f "${TMP_DIR}/succes_result" ]; then
           cli_log "Build succceeded!"
+          destroy_build
         else 
           cli_log "Build NOT succceeded!"
+          destroy_build
         fi
         ;;
 
