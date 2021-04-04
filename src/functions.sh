@@ -36,6 +36,8 @@ usage_() {
 }
 
 install_aws() {
+    local arg_
+    arg_="${1}"
     case "${arg_}" in
       --run)
           cli_log "Installing AWS CLI.."
