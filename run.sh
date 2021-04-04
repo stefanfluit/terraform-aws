@@ -56,13 +56,13 @@ case "${args_}" in
         --test)
             run_init --vagrant
             stamp_logfile "vagrant"
-            cli_log "Testing build.."
+            cli_log "Building test env locally with Vagrant.."
             run_test && cli_log "Done!"
             exit
             ;;
 
         --ssh-test)
-            vagrant_ssh && setup_vagrant_box
+            vagrant_ssh
             exit
             ;;
 
