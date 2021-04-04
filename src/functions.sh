@@ -390,9 +390,9 @@ setup_vagrant_box() {
         local AWS_IP_BUILD
         AWS_IP_BUILD=$(grep -P 'ssh vagrant@*' "${LOG_LOC_BUILD}" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b")
         cli_log "IP to check status is ${AWS_IP_BUILD}"
-        vagrant_ssh --build-command "ssh vagrant@${AWS_BUILD_IP} \"file /home/vagrant/repos/pnd-binance/requirements.txt && touch /tmp/succes\"" >> "${LOG_LOC_BUILD}"
-        scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "${DIR}/src/testing/ci-vagrant/.vagrant/machines/binance-pnd-build/virtualbox/private_key" -P 2222 vagrant@127.0.0.1:/tmp/succes "${TMP_DIR}/succes_result" >> "${LOG_LOC_BUILD}"
-        if [ -f "${TMP_DIR}/succes_result" ]; then
+        vagrant_ssh --build-command "ssh vagrant@${AWS_BUILD_IP} \"touch /home/vagrant/repos/pnd-binance/succes.txt\"" >> "${LOG_LOC_BUILD}"
+        scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "${DIR}/src/testing/ci-vagrant/.vagrant/machines/binance-pnd-build/virtualbox/private_key" -P 2222 vagrant@127.0.0.1:/home/vagrant/repos/pnd-binance/succes.txt "${TMP_DIR}/succes.txt" >> "${LOG_LOC_BUILD}"
+        if [ -f "${TMP_DIR}/succes.txt" ]; then
           cli_log "Build succceeded!"
           #destroy_build
         else 
