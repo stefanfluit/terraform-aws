@@ -389,14 +389,11 @@ setup_vagrant_box() {
         local AWS_IP_BUILD
         AWS_IP_BUILD=$(grep -P 'ssh vagrant@*' "${LOG_LOC_BUILD}" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b")
         cli_log "IP to check status is: ${AWS_IP_BUILD}"
-        scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "${BUILD_SSH_ID}" vagrant@${AWS_IP_BUILD}:/home/vagrant/repos/pnd-binance/requirements.txt "${TMP_DIR}/succes.txt" >> "${LOG_LOC_BUILD}"
-        if [ -f "${TMP_DIR}/succes.txt" ]; then
-          cli_log "Build succceeded!"
-          #destroy_build
-        else 
-          cli_log "Build NOT succceeded!"
-          #destroy_build
+        cli_log "CHECK CHECK CHECK CHECK"
+        if ssh -i "${BUILD_SSH_ID}" vagrant@${AWS_IP_BUILD} "test -e /home/vagrant/repos/pnd-binance/requirements.txt"; then
+          cli_log "Build succesful!"
         fi
+
         ;;
 
       *)
@@ -470,12 +467,4 @@ destroy_vagrant() {
       *)
           cli_log "Error in destroy_vagrant function."
     esac
-}
-
-build_repo() {
-  # Run a vagrant box and test the repo with default configuration.
-  echo commands
-  # Build the new binary
-  echo commands
-  # Push new results to the repo and release 
 }
