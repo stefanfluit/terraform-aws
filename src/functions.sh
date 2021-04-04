@@ -42,7 +42,7 @@ install_aws() {
       --run)
           cli_log "Installing AWS CLI.."
           curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
-          unzip /tmp/awscliv2.zip
+          unzip /tmp/awscliv2.zip &> /devv/null
           cd /tmp && sudo ./aws/install
           printf "%s\n" "aws_access_key_id=${AWS_ACCES}" >> /home/${SSH_USER}/.aws/credentials
           printf "%s\n" "aws_secret_access_key=${AWS_SECRET}" >> /home/${SSH_USER}/.aws/credentials
@@ -53,7 +53,7 @@ install_aws() {
       --build)
           cli_log "Installing AWS CLI.."
           curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
-          unzip /tmp/awscliv2.zip
+          unzip /tmp/awscliv2.zip &> /devv/null
           cd /tmp && sudo ./aws/install
           printf "%s\n" "aws_access_key_id=${AWS_ACCES}" >> /home/vagrant/.aws/credentials
           printf "%s\n" "aws_secret_access_key=${AWS_SECRET}" >> /home/vagrant/.aws/credentials
