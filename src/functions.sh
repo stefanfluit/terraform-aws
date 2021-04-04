@@ -389,7 +389,7 @@ setup_vagrant_box() {
         local AWS_IP_BUILD
         AWS_IP_BUILD=$(grep -P 'ssh vagrant@*' "${LOG_LOC_BUILD}" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b")
         cli_log "IP to check status is: ${AWS_IP_BUILD}"
-        scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "${BUILD_SSH_ID}" vagrant@${AWS_BUILD_IP}:/home/vagrant/repos/pnd-binance/succes.txt "${TMP_DIR}/succes.txt" >> "${LOG_LOC_BUILD}"
+        scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "${BUILD_SSH_ID}" vagrant@${AWS_IP_BUILD}:/home/vagrant/repos/pnd-binance/requirements.txt "${TMP_DIR}/succes.txt" >> "${LOG_LOC_BUILD}"
         if [ -f "${TMP_DIR}/succes.txt" ]; then
           cli_log "Build succceeded!"
           #destroy_build
