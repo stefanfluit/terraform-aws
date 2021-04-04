@@ -2,7 +2,7 @@ Vagrant.configure("2") do |config|
   # config.env.enable # enable .env support plugin (it will let us easily enable cloud_init support)
 
   # Give a custom name for a VM created by this script for a Vagrant CLI
-  config.vm.define "binance-pnd-build"
+  config.vm.define "cloud-init-ci-builder"
 
   # Name for the box image downloaded from the box_url
   # it will be used to create a folder inside ~/.vagrant.d/boxes to avoid re-downloading
@@ -13,12 +13,12 @@ Vagrant.configure("2") do |config|
 
   config.vm.provider "virtualbox" do |v|
     # Name visible inside your Virtualbox UI
-    v.name = "binance-pnd-build"
+    v.name = "cloud-init-ci-builder"
   end
 
   # cloud-init script
   config.vm.cloud_init :user_data do |cloud_init|
     cloud_init.content_type = "text/cloud-config"
-    cloud_init.path = "/tmp/pnd-server/cloud-init-ci.yml"
+    cloud_init.path = "/tmp/pnd-server/user_data_ci_builder.yml"
   end
 end
