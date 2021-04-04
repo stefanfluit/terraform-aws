@@ -394,10 +394,10 @@ setup_vagrant_box() {
         scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "${DIR}/src/testing/ci-vagrant/.vagrant/machines/binance-pnd-build/virtualbox/private_key" -P 2222 vagrant@127.0.0.1:/tmp/succes "${TMP_DIR}/succes_result" >> "${LOG_LOC_BUILD}"
         if [ -f "${TMP_DIR}/succes_result" ]; then
           cli_log "Build succceeded!"
-          destroy_build
+          #destroy_build
         else 
           cli_log "Build NOT succceeded!"
-          destroy_build
+          #destroy_build
         fi
         ;;
 
