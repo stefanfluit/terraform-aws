@@ -27,6 +27,7 @@ export SSH_ID_RSA=$(echo "${SSH_KEY}" | cut -f1,2 -d'.')                        
 export TMP_DIR="/tmp/pnd-server"                                                                        # Just a tmp dir to put some files.
 export VERSION_URL="https://raw.githubusercontent.com/stefanfluit/terraform-aws/master/VERSION"         # A version file in the repo to check if you're on the latest.
 export LOG_LOC="/home/${SSH_USER}/.pnd-binance-builder.log"                                             # The log location for this script.
+export LOG_LOC_BUILD="${LOG_LOC}.build"                                                                 # The log location for the build script.
 
 # MongoDB
 export ENABLE_MONGO=""                                                                                  # Set to 'enabled' and fill in the variables below to add the EC2 IP to the the MongoDB server UFW firewall and allow traffic on MONGO_PORT
