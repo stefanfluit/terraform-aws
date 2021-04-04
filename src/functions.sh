@@ -81,6 +81,15 @@ check_installed() {
     done
 }
 
+check_update_param() {
+  if [ "${SKIP_UPDATE}" = "enabled" ]; then
+    cli_log "Skipping update.."
+  else
+    cli_log "Checking for update.."
+    check_version
+  fi
+}
+
 check_gitlab_key() {
     if [ -n "${GITLAB_API_KEY}" ]; then
       cli_log "Gitlab API Key found: ${GITLAB_API_KEY}"
@@ -257,7 +266,7 @@ run_init() {
     case "${arg_}" in
       --terraform)
           check_logfile --run
-          check_version
+          check_update_param
           check_installed "aws" "terraform"
           check_gitlab_key
           check_ssh_key
@@ -269,14 +278,14 @@ run_init() {
       --vagrant)
           check_installed "virtualbox"
           check_logfile --run
-          check_version
+          check_update_param
           check_gitlab_key
           ;;
 
       --build)
           check_installed "fpm"
           check_logfile --build
-          check_version
+          check_update_param
           ;;
 
       *)
@@ -297,7 +306,7 @@ run_test() {
     cli_log "VM not running. Building.."
     cli_log "Adding your Username to user_data.yml.." && sed "s|sshuser|vagrant|g" "${DIR}"/templates/user_data.yml > /tmp/pnd-server/cloud-init.yml
     cli_log "Destroying previous box if existing, creating new box and rebuilding.."
-    cd "${DIR}/src/testing" && destroy_vagrant && \
+    cd "${DIR}/src/testing" && destroy_vagrant --test && \
     cli_log "Building new box.." && vagrant up >> "${LOG_LOC}"
     setup_vagrant_box && cli_log "Cleaning up.." rm -rf /tmp/pnd-server/cloud-init.yml && \
     cli_log "Test build is done, run ./run.sh --ssh-test to SSH into the machine."
@@ -310,48 +319,77 @@ run_build() {
   if [ "${?}" == "running" ]; then
     cli_log "Build machine is running already, use ./run.sh --ssh-build to SSH into the machine."
   else
-    cli_log "VM not running. Building.."
-    cli_log "Adding your Username to user_data.yml.." && sed "s|sshuser|vagrant|g" "${DIR}"/templates/user_data.yml > /tmp/pnd-server/cloud-init.yml
+    cli_log "Build VM not running. Building.."
+    cli_log "Adding Vagrant username to user_data.yml.." && sed "s|sshuser|vagrant|g" "${DIR}"/templates/user_data.yml > /tmp/pnd-server/cloud-init-ci.yml
     cli_log "Destroying previous box if existing, creating new box and rebuilding.."
-    cd "${DIR}/src/testing" && destroy_vagrant && \
-    cli_log "Building new box.." && vagrant up >> "${LOG_LOC}"
-    setup_vagrant_box && cli_log "Cleaning up.." rm -rf /tmp/pnd-server/cloud-init.yml && \
-    cli_log "Test build is done, run ./run.sh --ssh-test to SSH into the machine."
+    cd "${DIR}/src/testing/ci-vagrant" && destroy_vagrant --build && \
+    cli_log "Building new box.." && vagrant up >> "${LOG_LOC_BUILD}"
+    setup_vagrant_box && cli_log "Cleaning up.." rm -rf /tmp/pnd-server/cloud-init-ci.yml && \
+    cli_log "Test build is done, run ./run.sh --ssh-build to SSH into the machine."
   fi
-}
-
-vagrant_command() {
-  local command_
-  command_="${1}"
-  cd "${DIR}/src/testing" && vagrant ssh -- -t "${command_}" >> "${LOG_LOC}"
 }
 
 setup_vagrant_box() {
-  cli_log "Fetching key from server.."
-  scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "${DIR}/src/testing/.vagrant/machines/binance-pnd/virtualbox/private_key" -P 2222  vagrant@127.0.0.1:/home/vagrant/.ssh/id_ed25519.pub "${TMP_DIR}/vagrant_key.pub" >> "${LOG_LOC}"
-  local ROOT_KEY_VAGRANT
-  ROOT_KEY_VAGRANT=$(head -1 "${TMP_DIR}/vagrant_key.pub")
-  cli_log "Adding fetched SSH pub key as Gitlab deploy key.."
-  curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_API_KEY}" --header "Content-Type:application/json" --data "{\"title\": \"pnd-server-vagrant\", \"key\": \"${ROOT_KEY_VAGRANT}\", \"can_push\": \"true\"}" "https://gitlab.com/api/v4/projects/24216317/deploy_keys" >> "${LOG_LOC}"
-  cli_log "Cloning repo to the test server.."
-  vagrant_command "git clone --single-branch --branch master ${DEPLOY_REPO} /home/vagrant/repos/${BASENAME_REPO} --depth=1" >> "${LOG_LOC}"
-  cli_log "Fetching rest of the repo.."
-  vagrant_command "cd /home/vagrant/repos/${BASENAME_REPO} && git fetch --depth=${GIT_DEPTH}" >> "${LOG_LOC}"
-  cli_log "Installing Python requirements.."
-  vagrant_command "cd /home/vagrant/repos/${BASENAME_REPO} && pip3 install -r requirements.txt" >> "${LOG_LOC}"
-  if [ "${ENABLE_MONGO}" = "enable" ]; then
-    check_wan_ip && \
-    cli_log "Adding your WAN IP to the MongoDB server.."
-    ssh "${MONGO_SSH_USER}"@"${MONGO_HOST}" "sudo ufw allow from ${WAN_IP} to any port ${MONGO_PORT} && sudo ufw reload" >> "${LOG_LOC}" && \
-    cli_log "Done, firewall reloaded."
-  else
-    cli_log "Not adding test build to MongoDB, did not read parameter."
-  fi
+    local arg_
+    arg_="${1}"
+    case "${arg_}" in
+      --test)
+        cli_log "Fetching key from server.."
+        scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "${DIR}/src/testing/.vagrant/machines/binance-pnd/virtualbox/private_key" -P 2222  vagrant@127.0.0.1:/home/vagrant/.ssh/id_ed25519.pub "${TMP_DIR}/vagrant_key.pub" >> "${LOG_LOC}"
+        local ROOT_KEY_VAGRANT
+        ROOT_KEY_VAGRANT=$(head -1 "${TMP_DIR}/vagrant_key.pub")
+        cli_log "Adding fetched SSH pub key as Gitlab deploy key.."
+        curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_API_KEY}" --header "Content-Type:application/json" --data "{\"title\": \"pnd-server-vagrant\", \"key\": \"${ROOT_KEY_VAGRANT}\", \"can_push\": \"true\"}" "https://gitlab.com/api/v4/projects/24216317/deploy_keys" >> "${LOG_LOC}"
+        cli_log "Cloning repo to the test server.."
+        vagrant_command --test-command "git clone --single-branch --branch master ${DEPLOY_REPO} /home/vagrant/repos/${BASENAME_REPO} --depth=1" >> "${LOG_LOC}"
+        cli_log "Fetching rest of the repo.."
+        vagrant_command --test-command "cd /home/vagrant/repos/${BASENAME_REPO} && git fetch --depth=${GIT_DEPTH}" >> "${LOG_LOC}"
+        cli_log "Installing Python requirements.."
+        vagrant_command --test-command "cd /home/vagrant/repos/${BASENAME_REPO} && pip3 install -r requirements.txt" >> "${LOG_LOC}"
+        if [ "${ENABLE_MONGO}" = "enabled" ]; then
+          check_wan_ip && \
+          cli_log "Adding your WAN IP to the MongoDB server.."
+          ssh "${MONGO_SSH_USER}"@"${MONGO_HOST}" "sudo ufw allow from ${WAN_IP} to any port ${MONGO_PORT} && sudo ufw reload" >> "${LOG_LOC}" && \
+          cli_log "Done, firewall reloaded."
+        else
+          cli_log "Not adding test build to MongoDB, did not read parameter."
+        fi
+        ;;
+
+      --build)
+        cli_log "Fetching key from server.."
+        scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "${DIR}/src/testing/.vagrant/machines/binance-pnd-build/virtualbox/private_key" -P 2222  vagrant@127.0.0.1:/home/vagrant/.ssh/id_ed25519.pub "${TMP_DIR}/vagrant_key_build.pub" >> "${LOG_LOC_BUILD}"
+        local ROOT_KEY_VAGRANT_BUILD
+        ROOT_KEY_VAGRANT_BUILD=$(head -1 "${TMP_DIR}/vagrant_key_build.pub")
+        cli_log "Adding fetched SSH pub key as Gitlab deploy key.."
+        curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_API_KEY}" --header "Content-Type:application/json" --data "{\"title\": \"pnd-server-vagrant\", \"key\": \"${ROOT_KEY_VAGRANT_BUILD}\", \"can_push\": \"true\"}" "https://gitlab.com/api/v4/projects/24216317/deploy_keys" >> "${LOG_LOC_BUILD}"
+        cli_log "Cloning repo to the test server.."
+        vagrant_command --build-command "git clone --single-branch --branch master ${DEPLOY_REPO} /home/vagrant/repos/${BASENAME_REPO} --depth=1" >> "${LOG_LOC_BUILD}"
+        cli_log "Fetching rest of the repo.."
+        vagrant_command --build-command "cd /home/vagrant/repos/${BASENAME_REPO} && git fetch --depth=${GIT_DEPTH}" >> "${LOG_LOC_BUILD}"
+        cli_log "Installing Python requirements.."
+        vagrant_command --build-command "cd /home/vagrant/repos/${BASENAME_REPO} && pip3 install -r requirements.txt" >> "${LOG_LOC_BUILD}"
+        if [ "${ENABLE_MONGO}" = "enabled" ]; then
+          check_wan_ip && \
+          cli_log "Adding your WAN IP to the MongoDB server.."
+          ssh "${MONGO_SSH_USER}"@"${MONGO_HOST}" "sudo ufw allow from ${WAN_IP} to any port ${MONGO_PORT} && sudo ufw reload" >> "${LOG_LOC_BUILD}" && \
+          cli_log "Done, firewall reloaded."
+        else
+          cli_log "Not adding test build to MongoDB, did not read parameter."
+        fi
+        ;;
+
+      *)
+          cli_log "Error in vagrant_ssh function."
+    esac
 }
 
 vagrant_ssh() {
     local arg_
     arg_="${1}"
+    local commands_
+    commands_="${2}"
+
     case "${arg_}" in
       --test)
           cd "${DIR}/src/testing" && vagrant ssh
@@ -361,22 +399,52 @@ vagrant_ssh() {
           cd "${DIR}/src/testing/ci-vagrant" && vagrant ssh
           ;;
 
+      --test-command)
+          cd "${DIR}/src/testing" && vagrant ssh -- -t "${commands_}" >> "${LOG_LOC}"
+          ;;
+
+      --build-command)
+          cd "${DIR}/src/testing/ci-vagrant" && vagrant ssh -- -t "${commands_}" >> "${LOG_LOC_BUILD}"
+          ;;
+
       *)
           cli_log "Error in vagrant_ssh function."
     esac
 }
 
 destroy_vagrant() {
-  cli_log "Destroying Vagrant setup.."
-  cd "${DIR}/src/testing" && vagrant destroy --force >> "${LOG_LOC}"
-  # Rm folder or Virtualbox will cry
-  local VBOX_DIR
-  VBOX_DIR="/home/${SSH_USER}/VirtualBox VMs/binance-pnd"
-  if [ -d "${VBOX_DIR}" ]; then
-    rm -rf "${VBOX_DIR}" &> /dev/null
-    rm -rf /tmp/pnd-server/cloud-init.yml &> /dev/null
-  fi
-  cli_log "Destroyed Vagrant setup."
+    local arg_
+    arg_="${1}"
+    case "${arg_}" in
+      --test)
+        cli_log "Destroying Vagrant Test setup.."
+        cd "${DIR}/src/testing" && vagrant destroy --force >> "${LOG_LOC}"
+        # Rm folder or Virtualbox will cry
+        local VBOX_DIR
+        VBOX_DIR="/home/${SSH_USER}/VirtualBox VMs/binance-pnd"
+        if [ -d "${VBOX_DIR}" ]; then
+          rm -rf "${VBOX_DIR}" &> /dev/null
+          rm -rf /tmp/pnd-server/cloud-init.yml &> /dev/null
+        fi
+        cli_log "Destroyed Vagrant setup."
+        ;;
+
+      --build)
+        cli_log "Destroying Vagrant Build setup.."
+        cd "${DIR}/src/testing/ci-vagrant" && vagrant destroy --force >> "${LOG_LOC_BUILD}"
+        # Rm folder or Virtualbox will cry
+        local VBOX_DIR
+        VBOX_DIR="/home/${SSH_USER}/VirtualBox VMs/binance-pnd-build"
+        if [ -d "${VBOX_DIR}" ]; then
+          rm -rf "${VBOX_DIR}" &> /dev/null
+          rm -rf /tmp/pnd-server/cloud-init-ci.yml &> /dev/null
+        fi
+        cli_log "Destroyed Vagrant Build setup."
+        ;;
+
+      *)
+          cli_log "Error in destroy_vagrant function."
+    esac
 }
 
 build_repo() {
