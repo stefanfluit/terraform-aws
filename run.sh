@@ -66,6 +66,11 @@ case "${args_}" in
             exit
             ;;
 
+        --build)
+            build_repo
+            exit
+            ;;
+
         --destroy-test)
             destroy_vagrant
             cli_log "Done!"
