@@ -51,15 +51,10 @@ runcmd:
   - ufw allow ssh
   - echo "y" | ufw enable
   # Change hostname
-  - sudo hostnamectl set-hostname pnd-server
-  # Configure Git, otherwise the clone won't work. This is not pretty but it works.
-  - runuser -l sshuser -c 'git config --global pack.windowMemory 256m '
-  - runuser -l sshuser -c 'git config --global pack.packSizeLimit 256m'
-  - runuser -l sshuser -c 'git config --global http.postBuffer 1024M'
-  - runuser -l sshuser -c 'git config --global http.maxRequestBuffer 512M'
-  - runuser -l sshuser -c 'git config --global core.compression 9'
+  - sudo hostnamectl set-hostname pnd-server-build
   # Creating the repos folder and setting permissions.
   - mkdir /home/sshuser/repos
   - chown sshuser:sshuser /home/sshuser/repos
+  - runuser -l sshuser -c 'cd /home/sshuser/repos && git clone https://github.com/stefanfluit/terraform-aws.git'
   # This will also trigger the run.sh script to continue.
   - mkdir /tmp/done
