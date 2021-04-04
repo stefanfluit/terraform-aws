@@ -385,8 +385,16 @@ setup_vagrant_box() {
       # Need to change this to a static directory
         scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "${DIR}/src/testing/ci-vagrant/.vagrant/machines/binance-pnd-build/virtualbox/private_key" -P 2222  "/home/${SSH_USER}/Documents/scripts/terraform-aws/src/configs/build-config.sh" vagrant@127.0.0.1:/home/vagrant/repos/terraform-aws/src/build-config.sh >> "${LOG_LOC_BUILD}"
         vagrant_ssh --build-command "cd /home/vagrant/repos/terraform-aws/src && ./build-config.sh && cd /home/vagrant/repos/terraform-aws/src/testing/ci-vagrant && ./setup_aws.sh"
-        vagrant_ssh --build-command "cd /home/vagrant/repos/terraform-aws && ./run.sh --run --config-file=/home/vagrant/repos/terraform-aws/src/build-config.sh" >> "${LOG_LOC_BUILD}" && \
-        vagrant_ssh --build-command 
+        vagrant_ssh --build-command "cd /home/vagrant/repos/terraform-aws && ./run.sh --run --config-file=/home/vagrant/repos/terraform-aws/src/build-config.sh" >> "${LOG_LOC_BUILD}"
+        local AWS_IP_BUILD
+        AWS_IP_BUILD=$(grep -P 'ssh vagrant@*' "${LOG_LOC_BUILD}" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b")
+        vagrant_ssh --build-command "ssh vagrant@${AWS_BUILD_IP} \"file /home/vagrant/repos/pnd-binance/requirements.txt && touch /tmp/succes\""
+        scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "${DIR}/src/testing/ci-vagrant/.vagrant/machines/binance-pnd-build/virtualbox/private_key" -P 2222 vagrant@127.0.0.1:/tmp/succes "${TMP_DIR}/succes_result" >> "${LOG_LOC_BUILD}"
+        if [ -f "${TMP_DIR}/succes_result" ]; then
+          cli_log "Build succceeded!"
+        else 
+          cli_log "Build NOT succceeded!"
+        fi
         ;;
 
       *)
