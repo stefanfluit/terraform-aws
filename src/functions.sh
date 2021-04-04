@@ -391,6 +391,10 @@ setup_vagrant_box() {
     esac
 }
 
+destroy_build() {
+vagrant_ssh --build-command "cd /home/vagrant/repos/terraform-aws && ./run.sh --destroy --config-file=/home/vagrant/repos/terraform-aws/src/build-config.sh" >> "${LOG_LOC_BUILD}"
+}
+
 vagrant_ssh() {
     local arg_
     arg_="${1}"
