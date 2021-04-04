@@ -24,6 +24,7 @@ packages:
   - gnupg-agent
   - vim
   - unzip
+  - jq
 
 runcmd:
   # Configure ohmyzsh
