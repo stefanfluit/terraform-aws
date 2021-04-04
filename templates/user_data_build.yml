@@ -1,0 +1,65 @@
+#cloud-config
+
+users:
+  - name: sshuser
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: users, admin, root
+    lock_passwd: false
+    ssh_authorized_keys:
+      - sshkey
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - zsh
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - git
+  - software-properties-common
+  - python-is-python3
+  - fonts-powerline
+  - gnupg-agent
+  - vim
+
+runcmd:
+  # Configure ohmyzsh
+  - runuser -l sshuser -c 'sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended'
+  - runuser -l sshuser -c 'wget -O /home/sshuser/.zshrc https://raw.githubusercontent.com/stefanfluit/default_files/master/oh_my_zsh/.zshrc-pnd'
+  - sed -i 's/empty-user/sshuser/g' /home/sshuser/.zshrc
+  - chsh -s $(which zsh) sshuser
+  # Configure Python
+  - add-apt-repository ppa:deadsnakes/ppa -y
+  - apt-get update && apt install python3.8 -y
+  - apt-get install python3-pip -y
+  # Generate a key for Gitlab deploy
+  - runuser -l sshuser -c 'ssh-keygen -t ed25519 -f /home/sshuser/.ssh/id_ed25519 -C sshuser -q -N ""'
+  # Add Gitlab pub-key
+  - echo "gitlab.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCsj2bNKTBSpIYDEGk9KxsGh3mySTRgMtXL583qmBpzeQ+jqCMRgBqB98u3z++J1sKlXHWfM9dyhSevkMwSbhoR8XIq/U0tCNyokEi/ueaBMCvbcTHhO7FcwzY92WK4Yt0aGROY5qX2UKSeOvuP4D6TPqKF1onrSzH9bx9XUf2lEdWT/ia1NEKjunUqu1xOB/StKDHMoX4/OKyIzuS0q/T1zOATthvasJFoPrAjkohTyaDUz2LN5JoH839hViyEG82yB+MjcFV5MU3N1l1QL3cVUCh93xSaua1N85qivl+siMkPGbO5xR/En4iEY6K2XPASUEMaieWVNTRCtJ4S8H+9" >> /home/sshuser/.ssh/known_hosts
+  # Set permissions on SSH files/folders
+  - chown sshuser:sshuser /home/sshuser/.ssh/known_hosts
+  - chmod 700 /home/sshuser/.ssh
+  - chmod 644 /home/sshuser/.ssh/id_ed25519_aws.pub
+  - chmod 600 /home/sshuser/.ssh/id_ed25519_aws
+  - chmod 755 /home/sshuser
+  - chmod 644 /home/sshuser/.ssh/known_hosts
+  # Setup UFW on top of the AWS one.
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow ssh
+  - echo "y" | ufw enable
+  # Change hostname
+  - sudo hostnamectl set-hostname pnd-server
+  # Configure Git, otherwise the clone won't work. This is not pretty but it works.
+  - runuser -l sshuser -c 'git config --global pack.windowMemory 256m '
+  - runuser -l sshuser -c 'git config --global pack.packSizeLimit 256m'
+  - runuser -l sshuser -c 'git config --global http.postBuffer 1024M'
+  - runuser -l sshuser -c 'git config --global http.maxRequestBuffer 512M'
+  - runuser -l sshuser -c 'git config --global core.compression 9'
+  # Creating the repos folder and setting permissions.
+  - mkdir /home/sshuser/repos
+  - chown sshuser:sshuser /home/sshuser/repos
+  # This will also trigger the run.sh script to continue.
+  - mkdir /tmp/done
