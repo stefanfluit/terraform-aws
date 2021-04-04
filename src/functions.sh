@@ -256,9 +256,10 @@ vagrant_command() {
 }
 
 setup_vagrant_box() {
-  vagrant_command "cat /home/vagrant/.ssh/id_ed25519.pub" | grep ssh &> "${TMP_DIR}/pubkey-vagrant.pub"
+  cli_log "Fetching key from server.."
+  scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "${DIR}/src/testing/.vagrant/machines/binance-pnd/virtualbox/private_key" -P 2222  vagrant@127.0.0.1:/home/vagrant/.ssh/id_ed25519.pub "${TMP_DIR}/vagrant_key.pub" &> "${LOG_LOC}"
   local ROOT_KEY_VAGRANT
-  ROOT_KEY_VAGRANT="$(cat ${TMP_DIR}/pubkey-vagrant.pub)"
+  ROOT_KEY_VAGRANT=$(head -1 "${TMP_DIR}/vagrant_key.pub")
   cli_log "Adding fetched SSH pub key as Gitlab deploy key.."
   curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_API_KEY}" --header "Content-Type:application/json" --data "{\"title\": \"pnd-server-vagrant\", \"key\": \"${ROOT_KEY_VAGRANT}\", \"can_push\": \"true\"}" "https://gitlab.com/api/v4/projects/24216317/deploy_keys" &> "${LOG_LOC}"
   cli_log "Cloning repo to the test server.."
@@ -299,7 +300,6 @@ run_init() {
           check_gitlab_key
           ;;
       *)
-          printf "PnD Binance Server - %s: %s\n" "${timestamp_}" "${arg_}"
-          printf "PnD Binance Server - %s: %s\n" "${timestamp_}" "${arg_}" >> "${LOG_LOC}"
+          cli_log "Error in run_init script."
     esac
 }
