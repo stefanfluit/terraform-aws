@@ -349,7 +349,8 @@ run_build() {
     cli_log "Destroying previous box if existing, creating new box and rebuilding.."
     cd "${DIR}/src/testing/ci-vagrant" && destroy_vagrant --build && \
     cli_log "Building new box.." && vagrant up >> "${LOG_LOC_BUILD}"
-    setup_vagrant_box --build && cli_log "Cleaning up.." rm -rf /tmp/pnd-server/cloud-init-ci.yml && \
+    setup_vagrant_box --build && cli_log "Cleaning up.." 
+    rm -rf /tmp/pnd-server/cloud-init-ci.yml && \
     cli_log "Test build is done, run ./run.sh --ssh-build to SSH into the machine."
   fi
 }
