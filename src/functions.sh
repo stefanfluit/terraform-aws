@@ -228,6 +228,7 @@ check_version() {
 
   if (( $(bc <<<"${version} > ${local_version}") )); then 
       cli_log "I reccomend you do a git pull in the repo directory to fetch latest additions."
+      cli_log "You are on version ${local_version}, while ${version} is available."
   else
       cli_log "On latest version, proceeding.."
   fi
