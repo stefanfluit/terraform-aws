@@ -159,5 +159,4 @@ fi
 cli_log "Access server: ssh ${SSH_USER}@${AWS_IP}"
 send_alert "Access server: ssh ${SSH_USER}@${AWS_IP}"
 
-stamp_logfile "DONE" && \
-touch "${TMP_DIR}/succes.txt" && printf "Done\n" > "${TMP_DIR}/succes.txt"
+stamp_logfile "DONE"
