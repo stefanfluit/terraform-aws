@@ -291,7 +291,6 @@ run_init() {
           check_ssh_key
           check_username
           check_region
-          check_aws_region
           check_aws_region_config
           check_aws_instance_type
           ;;
