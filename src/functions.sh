@@ -231,11 +231,11 @@ check_logfile() {
         ;;
 
       --build)
-        if [ -f "${LOG_LOC}.build" ]; then
+        if [ -f "${LOG_LOC_BUILD}" ]; then
             cli_log "Log file found, proceeding."
         else 
             cli_log "Log file not found, creating.."
-            touch "${LOG_LOC}.build"
+            touch "${LOG_LOC_BUILD}"
         fi
         # Check directory
         if [ -d "${TMP_DIR}" ]; then
@@ -294,7 +294,6 @@ run_test() {
   if [ "${?}" == "running" ]; then
     cli_log "Test build is running already, use ./run.sh --ssh-test to SSH into the machine."
   else
-  # /tmp/pnd-server/cloud-init.yml
     cli_log "VM not running. Building.."
     cli_log "Adding your Username to user_data.yml.." && sed "s|sshuser|vagrant|g" "${DIR}"/templates/user_data.yml > /tmp/pnd-server/cloud-init.yml
     cli_log "Destroying previous box if existing, creating new box and rebuilding.."
@@ -307,11 +306,10 @@ run_test() {
 
 run_build() {
   cli_log "Determining current state of the Box.."
-  cd "${DIR}/src/testing/ci-vagrant" && vagrant status >> "${LOG_LOC}.build"
+  cd "${DIR}/src/testing/ci-vagrant" && vagrant status >> "${LOG_LOC_BUILD}"
   if [ "${?}" == "running" ]; then
     cli_log "Build machine is running already, use ./run.sh --ssh-build to SSH into the machine."
   else
-  # /tmp/pnd-server/cloud-init.yml
     cli_log "VM not running. Building.."
     cli_log "Adding your Username to user_data.yml.." && sed "s|sshuser|vagrant|g" "${DIR}"/templates/user_data.yml > /tmp/pnd-server/cloud-init.yml
     cli_log "Destroying previous box if existing, creating new box and rebuilding.."
