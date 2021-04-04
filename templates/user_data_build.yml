@@ -56,5 +56,11 @@ runcmd:
   - mkdir /home/sshuser/repos
   - chown sshuser:sshuser /home/sshuser/repos
   - runuser -l sshuser -c 'cd /home/sshuser/repos && git clone https://github.com/stefanfluit/terraform-aws.git'
+  # AWS CLI settings
+  - runuser -l sshuser -c 'mkdir ~/.aws'
+  - runuser -l sshuser -c 'touch ~/.config'
+  - runuser -l sshuser -c 'touch ~/.credentials'
+  - runuser -l sshuser -c 'echo [default] > ~/.aws/config'
+  - runuser -l sshuser -c 'echo [default] > ~/.aws/credentials'
   # This will also trigger the run.sh script to continue.
   - mkdir /tmp/done
