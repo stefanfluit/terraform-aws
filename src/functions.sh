@@ -320,7 +320,7 @@ run_build() {
     cli_log "Build machine is running already, use ./run.sh --ssh-build to SSH into the machine."
   else
     cli_log "Build VM not running. Building.."
-    cli_log "Adding Vagrant username to user_data.yml.." && sed "s|sshuser|vagrant|g" "${DIR}"/templates/user_data.yml > /tmp/pnd-server/cloud-init-ci.yml
+    cli_log "Adding Vagrant username to user_data.yml.." && sed "s|sshuser|vagrant|g" "${DIR}"/templates/user_data_build.yml > /tmp/pnd-server/cloud-init-ci.yml
     cli_log "Destroying previous box if existing, creating new box and rebuilding.."
     cd "${DIR}/src/testing/ci-vagrant" && destroy_vagrant --build && \
     cli_log "Building new box.." && vagrant up >> "${LOG_LOC_BUILD}"
