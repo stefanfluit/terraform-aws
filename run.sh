@@ -142,10 +142,6 @@ else
     cli_log "Not adding server to MongoDB, did not read parameter."
 fi
 
-# Clean up
-cli_log "Archiving old user_data.yml.." && mv "${DIR}"/terraform/deploy/user_data.yml "${TMP_DIR}/user_data.yml_old" &> "${LOG_LOC}"
-cli_log "Archiving old Terraform Provider file" && mv "${DIR}"/terraform/deploy/provider.tf "${TMP_DIR}/user_data.yml_old" &> "${LOG_LOC}"
-
 cli_log "Access server: ssh ${SSH_USER}@${AWS_IP}"
 send_alert "Access server: ssh ${SSH_USER}@${AWS_IP}"
 
