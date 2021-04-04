@@ -179,7 +179,7 @@ check_aws_instance_type() {
 
 run_test() {
   cli_log "Determining current state of the Box.."
-  cd "${DIR}/src/testing" && vagrant status &> "${LOG_LOC}"
+  cd "${DIR}/src/testing" && vagrant status >> "${LOG_LOC}"
   if [ "${?}" == "running" ]; then
     cli_log "Test build is running already, use ./run.sh --ssh-test to SSH into the machine."
   else
@@ -188,7 +188,7 @@ run_test() {
     cli_log "Adding your Username to user_data.yml.." && sed "s|sshuser|vagrant|g" "${DIR}"/templates/user_data.yml > /tmp/pnd-server/cloud-init.yml
     cli_log "Destroying previous box if existing, creating new box and rebuilding.."
     cd "${DIR}/src/testing" && destroy_vagrant && \
-    cli_log "Building new box.." && vagrant up &> "${LOG_LOC}"
+    cli_log "Building new box.." && vagrant up >> "${LOG_LOC}"
     setup_vagrant_box && cli_log "Cleaning up.." rm -rf /tmp/pnd-server/cloud-init.yml && \
     cli_log "Test build is done, run ./run.sh --ssh-test to SSH into the machine."
   fi
@@ -200,7 +200,7 @@ vagrant_ssh() {
 
 destroy_vagrant() {
   cli_log "Destroying Vagrant setup.."
-  cd "${DIR}/src/testing" && vagrant destroy --force &> "${LOG_LOC}"
+  cd "${DIR}/src/testing" && vagrant destroy --force >> "${LOG_LOC}"
   # Rm folder or Virtualbox will cry
   local VBOX_DIR
   VBOX_DIR="/home/${SSH_USER}/VirtualBox VMs/binance-pnd"
@@ -220,7 +220,7 @@ check_version() {
 
   if (( $(bc <<<"${version} > ${local_version}") )); then
       cli_log "Updating script to ${version}.."
-      cd "${DIR}" && git pull &> "${LOG_LOC}"
+      cd "${DIR}" && git pull >> "${LOG_LOC}"
       cli_log "Done, please rerun the script." && exit 1;
   else
       cli_log "On latest version, proceeding.."
@@ -239,33 +239,33 @@ check_logfile() {
     cli_log "Log dir found, proceeding."
   else
     cli_log "Log dir not found, creating.."
-    mkdir -pv "${TMP_DIR}" &> "${LOG_LOC}"
+    mkdir -pv "${TMP_DIR}" >> "${LOG_LOC}"
   fi
 }
 
 vagrant_command() {
   local command_
   command_="${1}"
-  cd "${DIR}/src/testing" && vagrant ssh -- -t "${command_}" &> "${LOG_LOC}"
+  cd "${DIR}/src/testing" && vagrant ssh -- -t "${command_}" >> "${LOG_LOC}"
 }
 
 setup_vagrant_box() {
   cli_log "Fetching key from server.."
-  scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "${DIR}/src/testing/.vagrant/machines/binance-pnd/virtualbox/private_key" -P 2222  vagrant@127.0.0.1:/home/vagrant/.ssh/id_ed25519.pub "${TMP_DIR}/vagrant_key.pub" &> "${LOG_LOC}"
+  scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "${DIR}/src/testing/.vagrant/machines/binance-pnd/virtualbox/private_key" -P 2222  vagrant@127.0.0.1:/home/vagrant/.ssh/id_ed25519.pub "${TMP_DIR}/vagrant_key.pub" >> "${LOG_LOC}"
   local ROOT_KEY_VAGRANT
   ROOT_KEY_VAGRANT=$(head -1 "${TMP_DIR}/vagrant_key.pub")
   cli_log "Adding fetched SSH pub key as Gitlab deploy key.."
-  curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_API_KEY}" --header "Content-Type:application/json" --data "{\"title\": \"pnd-server-vagrant\", \"key\": \"${ROOT_KEY_VAGRANT}\", \"can_push\": \"true\"}" "https://gitlab.com/api/v4/projects/24216317/deploy_keys" &> "${LOG_LOC}"
+  curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_API_KEY}" --header "Content-Type:application/json" --data "{\"title\": \"pnd-server-vagrant\", \"key\": \"${ROOT_KEY_VAGRANT}\", \"can_push\": \"true\"}" "https://gitlab.com/api/v4/projects/24216317/deploy_keys" >> "${LOG_LOC}"
   cli_log "Cloning repo to the test server.."
-  vagrant_command "git clone --single-branch --branch master ${DEPLOY_REPO} /home/vagrant/repos/${BASENAME_REPO} --depth=1" &> "${LOG_LOC}"
+  vagrant_command "git clone --single-branch --branch master ${DEPLOY_REPO} /home/vagrant/repos/${BASENAME_REPO} --depth=1" >> "${LOG_LOC}"
   cli_log "Fetching rest of the repo.."
-  vagrant_command "cd /home/vagrant/repos/${BASENAME_REPO} && git fetch --depth=${GIT_DEPTH}" &> "${LOG_LOC}"
+  vagrant_command "cd /home/vagrant/repos/${BASENAME_REPO} && git fetch --depth=${GIT_DEPTH}" >> "${LOG_LOC}"
   cli_log "Installing Python requirements.."
-  vagrant_command "cd /home/vagrant/repos/${BASENAME_REPO} && pip3 install -r requirements.txt" &> "${LOG_LOC}"
+  vagrant_command "cd /home/vagrant/repos/${BASENAME_REPO} && pip3 install -r requirements.txt" >> "${LOG_LOC}"
   if [ "${ENABLE_MONGO}" = "enable" ]; then
     check_wan_ip && \
     cli_log "Adding your WAN IP to the MongoDB server.."
-    ssh "${MONGO_SSH_USER}"@"${MONGO_HOST}" "sudo ufw allow from ${WAN_IP} to any port ${MONGO_PORT} && sudo ufw reload" &> "${LOG_LOC}" && \
+    ssh "${MONGO_SSH_USER}"@"${MONGO_HOST}" "sudo ufw allow from ${WAN_IP} to any port ${MONGO_PORT} && sudo ufw reload" >> "${LOG_LOC}" && \
     cli_log "Done, firewall reloaded."
   else
     cli_log "Not adding test build to MongoDB, did not read parameter."
