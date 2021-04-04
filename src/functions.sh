@@ -36,13 +36,32 @@ usage_() {
 }
 
 install_aws() {
-  curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
-  unzip /tmp/awscliv2.zip
-  cd /tmp && sudo ./aws/install
-  aws configure set default.region "${AWS_REGION}"
-  aws configure set aws_access_key_id "${AWS_ACCES}"
-  aws configure set aws_secret_access_key "${AWS_SECRET}"
-  aws ecr get-login | sudo sh
+    case "${arg_}" in
+      --run)
+          cli_log "Installing AWS CLI.."
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
+          unzip /tmp/awscliv2.zip
+          cd /tmp && sudo ./aws/install
+          printf "%s\n" "aws_access_key_id=${AWS_ACCES}" >> /home/${SSH_USER}/.aws/credentials
+          printf "%s\n" "aws_secret_access_key=${AWS_SECRET}" >> /home/${SSH_USER}/.aws/credentials
+          printf "%s\n" "region=${AWS_REGION}" >> /home/${SSH_USER}/.aws/config && \
+          cli_log "Done installing AWS CLI."
+          ;;
+
+      --build)
+          cli_log "Installing AWS CLI.."
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
+          unzip /tmp/awscliv2.zip
+          cd /tmp && sudo ./aws/install
+          printf "%s\n" "aws_access_key_id=${AWS_ACCES}" >> /home/vagrant/.aws/credentials
+          printf "%s\n" "aws_secret_access_key=${AWS_SECRET}" >> /home/vagrant/.aws/credentials
+          printf "%s\n" "region=${AWS_REGION}" >> /home/vagrant/.aws/config && \
+          cli_log "Done installing AWS CLI."
+          ;;
+
+      *)
+          cli_log "Error in install_aws function."
+  esac
 }
 
 install_virtualbox() {
