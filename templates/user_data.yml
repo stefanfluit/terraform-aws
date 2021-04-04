@@ -20,6 +20,9 @@ packages:
   - git
   - software-properties-common
   - python-is-python3
+  - fonts-powerline
+  - gnupg-agent
+  - vim
 
 runcmd:
   # Configure ohmyzsh
