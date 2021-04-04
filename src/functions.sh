@@ -36,9 +36,9 @@ usage_() {
 }
 
 install_aws() {
-  curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-  unzip awscliv2.zip
-  sudo ./aws/install
+  curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
+  unzip /tmp/awscliv2.zip
+  cd /tmp && sudo ./aws/install
   aws configure
 }
 
@@ -357,26 +357,9 @@ setup_vagrant_box() {
         ;;
 
       --build)
-        cli_log "Fetching key from server.."
-        scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "${DIR}/src/testing/.vagrant/machines/binance-pnd-build/virtualbox/private_key" -P 2222  vagrant@127.0.0.1:/home/vagrant/.ssh/id_ed25519.pub "${TMP_DIR}/vagrant_key_build.pub" >> "${LOG_LOC_BUILD}"
-        local ROOT_KEY_VAGRANT_BUILD
-        ROOT_KEY_VAGRANT_BUILD=$(head -1 "${TMP_DIR}/vagrant_key_build.pub")
-        cli_log "Adding fetched SSH pub key as Gitlab deploy key.."
-        curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_API_KEY}" --header "Content-Type:application/json" --data "{\"title\": \"pnd-server-vagrant\", \"key\": \"${ROOT_KEY_VAGRANT_BUILD}\", \"can_push\": \"true\"}" "https://gitlab.com/api/v4/projects/24216317/deploy_keys" >> "${LOG_LOC_BUILD}"
-        cli_log "Cloning repo to the test server.."
-        vagrant_ssh --build-command "git clone --single-branch --branch master ${DEPLOY_REPO} /home/vagrant/repos/${BASENAME_REPO} --depth=1" >> "${LOG_LOC_BUILD}"
-        cli_log "Fetching rest of the repo.."
-        vagrant_ssh --build-command "cd /home/vagrant/repos/${BASENAME_REPO} && git fetch --depth=${GIT_DEPTH}" >> "${LOG_LOC_BUILD}"
-        cli_log "Installing Python requirements.."
-        vagrant_ssh --build-command "cd /home/vagrant/repos/${BASENAME_REPO} && pip3 install -r requirements.txt" >> "${LOG_LOC_BUILD}"
-        if [ "${ENABLE_MONGO}" = "enabled" ]; then
-          check_wan_ip && \
-          cli_log "Adding your WAN IP to the MongoDB server.."
-          ssh "${MONGO_SSH_USER}"@"${MONGO_HOST}" "sudo ufw allow from ${WAN_IP} to any port ${MONGO_PORT} && sudo ufw reload" >> "${LOG_LOC_BUILD}" && \
-          cli_log "Done, firewall reloaded."
-        else
-          cli_log "Not adding test build to MongoDB, did not read parameter."
-        fi
+      # Need to change this to a static directory
+        scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "${DIR}/src/testing/ci-vagrant/.vagrant/machines/binance-pnd-build/virtualbox/private_key" -P 2222  "/home/${SSH_USER}/Documents/scripts/terraform-aws/src/config-local.sh" vagrant@127.0.0.1:/home/vagrant/repos/terraform-aws/src/config-local.sh >> "${LOG_LOC_BUILD}"
+        vagrant_ssh --build-command "cd /home/vagrant/repos/terraform-aws && ./run.sh --run --config-file=/home/vagrant/repos/src/config-local.sh" >> "${LOG_LOC_BUILD}"
         ;;
 
       *)
