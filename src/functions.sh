@@ -385,7 +385,8 @@ setup_vagrant_box() {
       # Need to change this to a static directory
         scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "${DIR}/src/testing/ci-vagrant/.vagrant/machines/binance-pnd-build/virtualbox/private_key" -P 2222  "/home/${SSH_USER}/Documents/scripts/terraform-aws/src/configs/build-config.sh" vagrant@127.0.0.1:/home/vagrant/repos/terraform-aws/src/build-config.sh >> "${LOG_LOC_BUILD}"
         vagrant_ssh --build-command "cd /home/vagrant/repos/terraform-aws/src && ./build-config.sh && cd /home/vagrant/repos/terraform-aws/src/testing/ci-vagrant && ./setup_aws.sh"
-        vagrant_ssh --build-command "cd /home/vagrant/repos/terraform-aws && ./run.sh --run --config-file=/home/vagrant/repos/terraform-aws/src/build-config.sh" >> "${LOG_LOC_BUILD}"
+        vagrant_ssh --build-command "cd /home/vagrant/repos/terraform-aws && ./run.sh --run --config-file=/home/vagrant/repos/terraform-aws/src/build-config.sh" >> "${LOG_LOC_BUILD}" && \
+        vagrant_ssh --build-command 
         ;;
 
       *)
@@ -394,7 +395,8 @@ setup_vagrant_box() {
 }
 
 destroy_build() {
-vagrant_ssh --build-command "cd /home/vagrant/repos/terraform-aws && ./run.sh --destroy --config-file=/home/vagrant/repos/terraform-aws/src/build-config.sh" >> "${LOG_LOC_BUILD}"
+  vagrant_ssh --build-command "cd /home/vagrant/repos/terraform-aws && ./run.sh --destroy --config-file=/home/vagrant/repos/terraform-aws/src/build-config.sh" >> "${LOG_LOC_BUILD}"
+  destroy_vagrant --build
 }
 
 vagrant_ssh() {
