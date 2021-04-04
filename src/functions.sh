@@ -36,10 +36,17 @@ usage_() {
 }
 
 install_aws() {
-    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-    unzip awscliv2.zip
-    sudo ./aws/install
-    aws configure
+  curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+  unzip awscliv2.zip
+  sudo ./aws/install
+  aws configure
+}
+
+install_virtualbox() {
+  wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | sudo apt-key add -
+  sudo add-apt-repository "deb [arch=amd64] http://download.virtualbox.org/virtualbox/debian $(lsb_release -cs) contrib"
+  cli_log "Updating apt.." && sudo apt-get update &> /dev/null
+  cli_log "Installing VirtualBox.." && sudo apt-get install virtualbox -y &> /dev/null
 }
 
 stamp_logfile() {
@@ -297,6 +304,7 @@ run_init() {
           check_aws_instance_type
           ;;
       --vagrant)
+          check_installed "virtualbox"
           check_logfile
           check_version
           check_gitlab_key
