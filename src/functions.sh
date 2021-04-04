@@ -289,7 +289,8 @@ run_init() {
       --terraform)
           check_logfile --run
           check_update_param
-          check_installed "aws" "terraform"
+          check_installed "terraform"
+          install_aws --run
           check_gitlab_key
           check_ssh_key
           check_username
@@ -305,6 +306,7 @@ run_init() {
           ;;
 
       --build)
+          install_aws --build
           check_installed "fpm"
           check_logfile --build
           check_update_param
