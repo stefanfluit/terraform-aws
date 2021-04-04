@@ -72,6 +72,11 @@ case "${args_}" in
             exit
             ;;
 
+        --destroy-build)
+            destroy_build
+            exit
+            ;;
+
         --ssh-build)
             vagrant_ssh --build
             exit
