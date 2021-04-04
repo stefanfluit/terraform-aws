@@ -22,6 +22,7 @@ export AWS_COUNT="1"                                                            
 export SSH_KEY="/home/${SSH_USER}/.ssh/id_rsa.pub"                                                      # The path to pubkey, here to be changed if it does not equal to your username.
 export SSH_KEY_OUTPUT=$(<${SSH_KEY})                                                                    # The pubkey without useless cat.
 export SSH_ID_RSA=$(echo "${SSH_KEY}" | cut -f1,2 -d'.')                                                # Get the name of the id_rsa without the .pub part
+export SSH_BUILD_KEY="/home/${SSH_USER}/.ssh/id_ed25519.pub"                                            # The path to pubkey, here to be changed if it does not equal to your username.
 
 # No need to change
 export TMP_DIR="/tmp/pnd-server"                                                                        # Just a tmp dir to put some files.
