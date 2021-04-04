@@ -7,5 +7,5 @@ variable "ec2_count" {
 }
 
 variable "instance_type" {
-  default = "instance_type"
+  default = "ec2_type"
 }
