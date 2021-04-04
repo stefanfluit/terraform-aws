@@ -395,10 +395,12 @@ setup_vagrant_box() {
           export SUCCES_STATUS="0"
         else
           cli_log "Build NOT succesful!"
+          destroy_build
           export SUCCES_STATUS="1"
         fi
         if [ "${SUCCES_STATUS}" = "0" ]; then
           cli_log "Distributing build.."
+          destroy_build
           distribute_build
         fi
         ;;
@@ -477,5 +479,9 @@ destroy_vagrant() {
 }
 
 distribute_build() {
-  echo commads
+  local BUILD_DIR="/home/$(whoami)/builder"
+  cd "${DIR}" && git add . && git commit -m "Automatic push of new files by builder." && git push
+  # I don't want all the files to be packaged that are in my .gitignore.
+  mkdir "${BUILD_DIR}" && cd "${BUILD_DIR}" && git clone https://github.com/stefanfluit/terraform-aws.git
+  fpm -s dir --deb-no-default-config-files -t deb -n terraform-aws ${BUILD_DIR}/terraform-aws=/usr/local/bin/
 }
