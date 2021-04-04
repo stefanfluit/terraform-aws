@@ -177,14 +177,6 @@ check_aws_instance_type() {
   fi
 }
 
-check_aws_region_config() {
-  if sed -n "/${AWS_PROFILE}{n;p;}" ~/.aws/config | grep -e ${AWS_REGION}; then
-    cli_log "Regions match, proceeding."
-  else
-    cli_log "AWS Regions don't match, aws will override with the default set in ~/.aws/config for profile ${AWS_{PROFILE}."
-  fi
-}
-
 run_test() {
   cli_log "Determining current state of the Box.."
   cd "${DIR}/src/testing" && vagrant status &> "${LOG_LOC}"
@@ -291,7 +283,6 @@ run_init() {
           check_ssh_key
           check_username
           check_region
-          check_aws_region_config
           check_aws_instance_type
           ;;
       --vagrant)
