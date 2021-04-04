@@ -390,10 +390,17 @@ setup_vagrant_box() {
         AWS_IP_BUILD=$(grep -P 'ssh vagrant@*' "${LOG_LOC_BUILD}" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b")
         cli_log "IP to check status is: ${AWS_IP_BUILD}"
         cli_log "CHECK CHECK CHECK CHECK"
-        if ssh -i "${BUILD_SSH_ID}" vagrant@${AWS_IP_BUILD} "test -e /home/vagrant/repos/pnd-binance/requirements.txt"; then
+        if ssh -o StrictHostKeyChecking=no -i /home/fluit/.ssh/id_ed25519_terraform_aws_builder vagrant@${AWS_IP_BUILD} "test -e /home/vagrant/repos/pnd-binance/requirements.txt"; then
           cli_log "Build succesful!"
+          export SUCCES_STATUS="0"
+        else
+          cli_log "Build NOT succesful!"
+          export SUCCES_STATUS="1"
         fi
-
+        if [ "${SUCCES_STATUS}" = "0" ]; then
+          cli_log "Distributing build.."
+          distribute_build
+        fi
         ;;
 
       *)
@@ -467,4 +474,8 @@ destroy_vagrant() {
       *)
           cli_log "Error in destroy_vagrant function."
     esac
+}
+
+distribute_build() {
+  echo commads
 }
