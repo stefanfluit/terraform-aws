@@ -42,6 +42,6 @@ export VAGRANT_EXPERIMENTAL="cloud_init,disks"                                  
 export WAN_IP=$(dig TXT +short o-o.myaddr.l.google.com @ns1.google.com | awk -F'"' '{ print $2}')       # Attempt to get your IP for the Vagrant file > gitlab
 export SKIP_UPDATE="disabled"                                                                           # set to 'enabled' to skip update.
 
-# Build variables
+# Build variables, or if you didn't configure AWS CLI yet.
 export AWS_SECRET=""                                                                                    # AWS Secret Key
 export AWS_ACCES=""                                                                                     # AWS Acces Key
