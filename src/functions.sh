@@ -39,7 +39,10 @@ install_aws() {
   curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
   unzip /tmp/awscliv2.zip
   cd /tmp && sudo ./aws/install
-  aws configure
+  aws configure set default.region "${AWS_REGION}"
+  aws configure set aws_access_key_id "${AWS_ACCES}"
+  aws configure set aws_secret_access_key "${AWS_SECRET}"
+  aws ecr get-login | sudo sh
 }
 
 install_virtualbox() {
