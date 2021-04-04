@@ -313,3 +313,11 @@ run_init() {
           cli_log "Error in run_init script."
     esac
 }
+
+build_repo() {
+  # Run a vagrant box and test the repo with default configuration.
+  echo commands
+  # Build the new binary
+  echo commands
+  # Push new results to the repo and release 
+}
