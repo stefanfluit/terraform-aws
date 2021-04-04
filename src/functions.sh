@@ -194,40 +194,6 @@ check_aws_instance_type() {
   fi
 }
 
-run_test() {
-  cli_log "Determining current state of the Box.."
-  cd "${DIR}/src/testing" && vagrant status >> "${LOG_LOC}"
-  if [ "${?}" == "running" ]; then
-    cli_log "Test build is running already, use ./run.sh --ssh-test to SSH into the machine."
-  else
-  # /tmp/pnd-server/cloud-init.yml
-    cli_log "VM not running. Building.."
-    cli_log "Adding your Username to user_data.yml.." && sed "s|sshuser|vagrant|g" "${DIR}"/templates/user_data.yml > /tmp/pnd-server/cloud-init.yml
-    cli_log "Destroying previous box if existing, creating new box and rebuilding.."
-    cd "${DIR}/src/testing" && destroy_vagrant && \
-    cli_log "Building new box.." && vagrant up >> "${LOG_LOC}"
-    setup_vagrant_box && cli_log "Cleaning up.." rm -rf /tmp/pnd-server/cloud-init.yml && \
-    cli_log "Test build is done, run ./run.sh --ssh-test to SSH into the machine."
-  fi
-}
-
-vagrant_ssh() {
-  cd "${DIR}/src/testing" && vagrant ssh
-}
-
-destroy_vagrant() {
-  cli_log "Destroying Vagrant setup.."
-  cd "${DIR}/src/testing" && vagrant destroy --force >> "${LOG_LOC}"
-  # Rm folder or Virtualbox will cry
-  local VBOX_DIR
-  VBOX_DIR="/home/${SSH_USER}/VirtualBox VMs/binance-pnd"
-  if [ -d "${VBOX_DIR}" ]; then
-    rm -rf "${VBOX_DIR}" &> /dev/null
-    rm -rf /tmp/pnd-server/cloud-init.yml &> /dev/null
-  fi
-  cli_log "Destroyed Vagrant setup."
-}
-
 check_version() {
   local repo_url="https://raw.githubusercontent.com/stefanfluit/terraform-aws/master/VERSION"
   local version
@@ -245,18 +211,97 @@ check_version() {
 }
 
 check_logfile() {
-  if [ -f "${LOG_LOC}" ]; then
-      cli_log "Log file found, proceeding."
-  else 
-      cli_log "Log file not found, creating.."
-      touch "${LOG_LOC}"
-  fi
-  # Check directory
-  if [ -d "/path/to/dir" ]; then
-    cli_log "Log dir found, proceeding."
+    local arg_
+    arg_="${1}"
+    case "${arg_}" in
+      --run)
+        if [ -f "${LOG_LOC}" ]; then
+            cli_log "Log file found, proceeding."
+        else 
+            cli_log "Log file not found, creating.."
+            touch "${LOG_LOC}"
+        fi
+        # Check directory
+        if [ -d "${TMP_DIR}" ]; then
+            cli_log "Log dir found, proceeding."
+        else
+            cli_log "Log dir not found, creating.."
+            mkdir -pv "${TMP_DIR}" >> "${LOG_LOC}"
+        fi
+        ;;
+
+      --build)
+        if [ -f "${LOG_LOC}.build" ]; then
+            cli_log "Log file found, proceeding."
+        else 
+            cli_log "Log file not found, creating.."
+            touch "${LOG_LOC}.build"
+        fi
+        # Check directory
+        if [ -d "${TMP_DIR}" ]; then
+            cli_log "Log dir found, proceeding."
+        else
+            cli_log "Log dir not found, creating.."
+            mkdir -pv "${TMP_DIR}" >> "${LOG_LOC}"
+        fi
+        ;;
+
+      *)
+          cli_log "Error in check_logfile function."
+    esac
+}
+
+run_init() {
+    local arg_
+    arg_="${1}"
+    case "${arg_}" in
+      --terraform)
+          check_logfile --run
+          check_version
+          check_installed "aws" "terraform"
+          check_gitlab_key
+          check_ssh_key
+          check_username
+          check_region
+          check_aws_instance_type
+          ;;
+
+      --vagrant)
+          check_installed "virtualbox"
+          check_logfile --run
+          check_version
+          check_gitlab_key
+          ;;
+
+      --build)
+          check_installed "fpm"
+          check_logfile --build
+          check_version
+          ;;
+
+      *)
+          cli_log "Error in run_init script."
+    esac
+}
+
+#####################################################################
+# Vagrant functions
+#####################################################################
+
+run_test() {
+  cli_log "Determining current state of the Box.."
+  cd "${DIR}/src/testing" && vagrant status >> "${LOG_LOC}"
+  if [ "${?}" == "running" ]; then
+    cli_log "Test build is running already, use ./run.sh --ssh-test to SSH into the machine."
   else
-    cli_log "Log dir not found, creating.."
-    mkdir -pv "${TMP_DIR}" >> "${LOG_LOC}"
+  # /tmp/pnd-server/cloud-init.yml
+    cli_log "VM not running. Building.."
+    cli_log "Adding your Username to user_data.yml.." && sed "s|sshuser|vagrant|g" "${DIR}"/templates/user_data.yml > /tmp/pnd-server/cloud-init.yml
+    cli_log "Destroying previous box if existing, creating new box and rebuilding.."
+    cd "${DIR}/src/testing" && destroy_vagrant && \
+    cli_log "Building new box.." && vagrant up >> "${LOG_LOC}"
+    setup_vagrant_box && cli_log "Cleaning up.." rm -rf /tmp/pnd-server/cloud-init.yml && \
+    cli_log "Test build is done, run ./run.sh --ssh-test to SSH into the machine."
   fi
 }
 
@@ -289,29 +334,21 @@ setup_vagrant_box() {
   fi
 }
 
-run_init() {
-    local arg_
-    arg_="${1}"
-    case "${arg_}" in
-      --terraform)
-          check_logfile
-          check_version
-          check_installed "aws" "terraform"
-          check_gitlab_key
-          check_ssh_key
-          check_username
-          check_region
-          check_aws_instance_type
-          ;;
-      --vagrant)
-          check_installed "virtualbox"
-          check_logfile
-          check_version
-          check_gitlab_key
-          ;;
-      *)
-          cli_log "Error in run_init script."
-    esac
+vagrant_ssh() {
+  cd "${DIR}/src/testing" && vagrant ssh
+}
+
+destroy_vagrant() {
+  cli_log "Destroying Vagrant setup.."
+  cd "${DIR}/src/testing" && vagrant destroy --force >> "${LOG_LOC}"
+  # Rm folder or Virtualbox will cry
+  local VBOX_DIR
+  VBOX_DIR="/home/${SSH_USER}/VirtualBox VMs/binance-pnd"
+  if [ -d "${VBOX_DIR}" ]; then
+    rm -rf "${VBOX_DIR}" &> /dev/null
+    rm -rf /tmp/pnd-server/cloud-init.yml &> /dev/null
+  fi
+  cli_log "Destroyed Vagrant setup."
 }
 
 build_repo() {
