@@ -73,9 +73,7 @@ case "${args_}" in
             ;;
 
         *)
-            cli_log "No parameter specified."
-            cli_log "Run: ./run.sh --destroy, ./run.sh --reset or ./run.sh --run, ./run.sh --test is available but not tested."
-            exit 1
+            usage_
 esac
 
 cli_log "Adding variables to configuration files.."

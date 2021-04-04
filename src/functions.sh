@@ -25,6 +25,16 @@ cli_log() {
     esac
 }
 
+usage_() {
+  cli_log "Run: ./run.sh --run --config-file=/path/to/config to create the infra in AWS."
+  cli_log "Run: ./run.sh --destroy --config-file=/path/to/config.sh to destroy the infra in AWS."
+  cli_log "Run: ./run.sh --reset --config-file=/path/to/config.sh to destroy and rebuild the infra in AWS."
+  cli_log "Run: ./run.sh --test --config-file=/path/to/config.sh to test the repo local in Vagrant."
+  cli_log "Run: ./run.sh --ssh-test --config-file=/path/to/config.sh to SSH in to the machine in Vagrant."
+  cli_log "Run: ./run.sh --destroy-test --config-file=/path/to/config.sh to destroy the machine in Vagrant."
+  exit 1;
+}
+
 install_aws() {
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
     unzip awscliv2.zip
