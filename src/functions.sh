@@ -218,9 +218,10 @@ check_version() {
   local local_version
   local_version=$(cat "${DIR}/VERSION" | grep -Eo '[0-9].{1,4}')
 
-  if (( $(bc <<<"${version} > ${local_version}") )); then 
-      cli_log "I reccomend you do a git pull in the repo directory to fetch latest additions."
-      cli_log "You are on version ${local_version}, while ${version} is available."
+  if (( $(bc <<<"${version} > ${local_version}") )); then
+      cli_log "Updating script to ${version}.."
+      cd "${DIR}" && git pull &> "${LOG_LOC}"
+      cli_log "Done, please rerun the script." && exit 1;
   else
       cli_log "On latest version, proceeding.."
   fi
