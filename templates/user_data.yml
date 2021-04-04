@@ -8,6 +8,7 @@ users:
     lock_passwd: false
     ssh_authorized_keys:
       - sshkey
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbsp4ErPKCAPX872tA3+d8E1woXqLQOAs64PkuJIgah terraform-aws-builder@fluit-online.nl
 
 package_update: true
 package_upgrade: true
