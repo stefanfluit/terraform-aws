@@ -23,6 +23,7 @@ packages:
   - fonts-powerline
   - gnupg-agent
   - vim
+  - unzip
 
 runcmd:
   # Configure ohmyzsh
