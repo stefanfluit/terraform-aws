@@ -62,12 +62,18 @@ case "${args_}" in
             ;;
 
         --ssh-test)
-            vagrant_ssh
+            vagrant_ssh --test
             exit
             ;;
 
         --build)
+            run_init --build
             build_repo
+            exit
+            ;;
+
+        --ssh-build)
+            vagrant_ssh --build
             exit
             ;;
 
