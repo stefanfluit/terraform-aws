@@ -68,7 +68,7 @@ case "${args_}" in
 
         --build)
             run_init --build
-            build_repo
+            run_build
             exit
             ;;
 
