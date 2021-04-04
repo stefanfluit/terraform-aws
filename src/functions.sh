@@ -305,6 +305,23 @@ run_test() {
   fi
 }
 
+run_build() {
+  cli_log "Determining current state of the Box.."
+  cd "${DIR}/src/testing/ci-vagrant" && vagrant status >> "${LOG_LOC}.build"
+  if [ "${?}" == "running" ]; then
+    cli_log "Build machine is running already, use ./run.sh --ssh-build to SSH into the machine."
+  else
+  # /tmp/pnd-server/cloud-init.yml
+    cli_log "VM not running. Building.."
+    cli_log "Adding your Username to user_data.yml.." && sed "s|sshuser|vagrant|g" "${DIR}"/templates/user_data.yml > /tmp/pnd-server/cloud-init.yml
+    cli_log "Destroying previous box if existing, creating new box and rebuilding.."
+    cd "${DIR}/src/testing" && destroy_vagrant && \
+    cli_log "Building new box.." && vagrant up >> "${LOG_LOC}"
+    setup_vagrant_box && cli_log "Cleaning up.." rm -rf /tmp/pnd-server/cloud-init.yml && \
+    cli_log "Test build is done, run ./run.sh --ssh-test to SSH into the machine."
+  fi
+}
+
 vagrant_command() {
   local command_
   command_="${1}"
@@ -335,7 +352,20 @@ setup_vagrant_box() {
 }
 
 vagrant_ssh() {
-  cd "${DIR}/src/testing" && vagrant ssh
+    local arg_
+    arg_="${1}"
+    case "${arg_}" in
+      --test)
+          cd "${DIR}/src/testing" && vagrant ssh
+          ;;
+
+      --build)
+          cd "${DIR}/src/testing/ci-vagrant" && vagrant ssh
+          ;;
+
+      *)
+          cli_log "Error in vagrant_ssh function."
+    esac
 }
 
 destroy_vagrant() {
