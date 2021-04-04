@@ -1,3 +1,6 @@
 .terraform*
 terraform*
 terraform.tfstat*
+provider.tf
+user_data.yml
+variables.tf
