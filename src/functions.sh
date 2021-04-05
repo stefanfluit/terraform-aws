@@ -308,7 +308,6 @@ run_init() {
           ;;
 
       --build)
-          check_installed "fpm"
           check_logfile --build
           check_update_param
           ;;
@@ -476,12 +475,4 @@ destroy_vagrant() {
       *)
           cli_log "Error in destroy_vagrant function."
     esac
-}
-
-distribute_build() {
-  local BUILD_DIR="/home/$(whoami)/builder"
-  cd "${DIR}" && git add . && git commit -m "Automatic push of new files by builder." && git push
-  # I don't want all the files to be packaged that are in my .gitignore.
-  mkdir "${BUILD_DIR}" && cd "${BUILD_DIR}" && git clone https://github.com/stefanfluit/terraform-aws.git
-  fpm -s dir --deb-no-default-config-files -t deb -n terraform-aws ${BUILD_DIR}/terraform-aws=/usr/local/bin/
 }
