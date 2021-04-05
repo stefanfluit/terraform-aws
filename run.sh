@@ -10,19 +10,10 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 # Sourcing configurations and functions
 . "${DIR}/src/functions.sh"
 
-declare config_file_param
-config_file_param="${2}"
+declare config_file_check
+config_file_check="${2}"
 
-declare config_file
-config_file=$(echo ${config_file_param} | grep -oP '=\K.*')
-
-if [ -f "${config_file}" ]; then
-    cli_log --no-log "${config_file} exists."
-    source "${config_file}"
-else 
-    cli_log --no-log "No config file parameter detected, defaulting to config in repo."
-    source "${DIR}/src/config.sh"
-fi
+validate_config "${config_file_check}"
 
 declare args_
 args_="${1}"
@@ -85,6 +76,11 @@ case "${args_}" in
         --destroy-test)
             destroy_vagrant
             cli_log "Done!"
+            exit
+            ;;
+
+        --test-config)
+            test_config
             exit
             ;;
 
