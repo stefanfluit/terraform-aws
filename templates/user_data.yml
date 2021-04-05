@@ -26,6 +26,7 @@ packages:
   - fonts-powerline
   - gnupg-agent
   - vim
+  - mtr
 
 runcmd:
   # Configure ohmyzsh
