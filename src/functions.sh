@@ -285,22 +285,23 @@ check_logfile() {
 }
 
 validate_config() {
+  #set -x
   local config_file_param
   config_file_param="${1}"
   local config_file
   config_file=$(echo ${config_file_param} | grep -oP '=\K.*')
   local static_config_file="/home/$(whoami)/pnd-config.sh"
 
-  if [ -f "${static_config_file}" ]; then
-      cli_log --no-log "Static config ${static_config_file} found."
-      source "${static_config_file}"
+  if [ -f "${config_file}" ]; then
+      cli_log --no-log "Sourcing passed config file.."
+      source "${config_file}" && test_config
   else 
-       if [ -f "${config_file}" ]; then
-        cli_log --no-log "${config_file} detected."
-        source "${config_file}"
+       if [ -f "${static_config_file}" ]; then
+        cli_log --no-log "${static_config_file} detected."
+        source "${static_config_file}" && test_config
       else 
-        cli_log --no-log "No config file parameter detected, defaulting to config in repo."
-        source "${DIR}/src/config.sh"
+        cli_log --no-log "No config file parameter detected, no personal config found, defaulting to config in repo.."
+        source "${DIR}/src/config.sh" && test_config
       fi
   fi
 }
