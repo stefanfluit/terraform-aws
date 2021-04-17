@@ -25,7 +25,7 @@ case "${args_}" in
             stamp_logfile "terraform"
             cli_log "Destroying current infra.."
             cd "${DIR}"/terraform/deploy 
-            terraform destroy -force >> "${LOG_LOC}"
+            terraform destroy -auto-approve >> "${LOG_LOC}"
             cli_log "Destroyed everything." && exit
             ;;
 
@@ -33,7 +33,7 @@ case "${args_}" in
             stamp_logfile "terraform"
             cli_log "Resetting.." && cli_log "Destroying current infra.."
             cd "${DIR}"/terraform/deploy 
-            terraform destroy -force >> "${LOG_LOC}"
+            terraform destroy -auto-approve >> "${LOG_LOC}"
             cli_log "Destroyed everything."
             # Without the exit the script will just continue and rebuild the structure
             ;;
@@ -112,7 +112,7 @@ declare AWS_IP
 AWS_IP=$(terraform output | grep public-ip | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b")
 
 # Sleep to prevent 'refused' error
-cli_log "Waiting for server to start.." sleep 10
+cli_log "Waiting for server to start.." && sleep 10
 
 declare max_timeout="6000"
 declare timeout_at
