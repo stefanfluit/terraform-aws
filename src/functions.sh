@@ -42,8 +42,7 @@ usage_() {
   cli_log "Run: ./run.sh --reset --config-file=/path/to/config.sh to destroy and rebuild the infra in AWS."
   cli_log "Run: ./run.sh --test --config-file=/path/to/config.sh to test the repo local in Vagrant."
   cli_log "Run: ./run.sh --ssh-test --config-file=/path/to/config.sh to SSH in to the machine in Vagrant."
-  cli_log "Run: ./run.sh --destroy-test --config-file=/path/to/config.sh to destroy the machine in Vagrant."
-  exit 1;
+  cli_log --exit "Run: ./run.sh --destroy-test --config-file=/path/to/config.sh to destroy the machine in Vagrant."
 }
 
 install_aws() {
@@ -53,23 +52,23 @@ install_aws() {
       --run)
           cli_log "Installing AWS CLI.."
           curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
-          unzip /tmp/awscliv2.zip &> /dev/null
-          cd /tmp && sudo ./aws/install
+          unzip /tmp/awscliv2.zip &>> "${LOG_LOC}"
+          cd /tmp && sudo ./aws/install &>> "${LOG_LOC}"
           printf "%s\n" "aws_access_key_id=${AWS_ACCES}" >> /home/${SSH_USER}/.aws/credentials
           printf "%s\n" "aws_secret_access_key=${AWS_SECRET}" >> /home/${SSH_USER}/.aws/credentials
           printf "%s\n" "region=${AWS_REGION}" >> /home/${SSH_USER}/.aws/config && \
-          cli_log "Done installing AWS CLI."
+          cli_log --no-log "Done installing AWS CLI."
           ;;
 
       --build)
           cli_log "Installing AWS CLI.."
           curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
-          unzip /tmp/awscliv2.zip &> /devv/null
-          cd /tmp && sudo ./aws/install
+          unzip /tmp/awscliv2.zip &>> "${LOG_LOC}"
+          cd /tmp && sudo ./aws/install &>> "${LOG_LOC}"
           printf "%s\n" "aws_access_key_id=${AWS_ACCES}" >> /home/vagrant/.aws/credentials
           printf "%s\n" "aws_secret_access_key=${AWS_SECRET}" >> /home/vagrant/.aws/credentials
           printf "%s\n" "region=${AWS_REGION}" >> /home/vagrant/.aws/config && \
-          cli_log "Done installing AWS CLI."
+          cli_log --no-log "Done installing AWS CLI."
           ;;
 
       *)
@@ -78,10 +77,10 @@ install_aws() {
 }
 
 install_virtualbox() {
-  wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | sudo apt-key add -
-  sudo add-apt-repository "deb [arch=amd64] http://download.virtualbox.org/virtualbox/debian $(lsb_release -cs) contrib"
-  cli_log "Updating apt.." && sudo apt-get update &> /dev/null
-  cli_log "Installing VirtualBox.." && sudo apt-get install virtualbox -y &> /dev/null
+  wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | sudo apt-key add - &>> "${LOG_LOC}"
+  sudo add-apt-repository "deb [arch=amd64] http://download.virtualbox.org/virtualbox/debian $(lsb_release -cs) contrib" &>> "${LOG_LOC}"
+  cli_log --no-log "Updating apt.." && sudo apt-get update &>> "${LOG_LOC}"
+  cli_log --no-log "Installing VirtualBox.." && sudo apt-get install virtualbox -y &>> "${LOG_LOC}"
 }
 
 stamp_logfile() {
@@ -90,21 +89,20 @@ stamp_logfile() {
   # Print stamp to the log file
   local DATE_STAMP
   DATE_STAMP=$(date '+%d/%m/%Y %H:%M:%S')
-  printf "%s ##################################### %s\n" "${TOOL_TAG}" "${DATE_STAMP}" >> "${LOG_LOC}"
+  printf "%s ##################################### %s\n" "${TOOL_TAG}" "${DATE_STAMP}" &>> "${LOG_LOC}"
 }
 
 install_terraform() {
-    curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
-    sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
-    sudo apt-get update && sudo apt-get install terraform -y &> /dev/null
+    curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add - &>> "${LOG_LOC}"
+    sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main" &>> "${LOG_LOC}"
+    sudo apt-get update &>> "${LOG_LOC}" && sudo apt-get install terraform -y &>> "${LOG_LOC}"
 }
 
 check_installed() {
     local -a progrs=("${@}")
     if [[ $# -eq 0 ]]
     then
-      cli_log "No arguments supplied. Syntax is like: check_installed <Program 1..> <Program 2..> <Etc..>"
-      exit 1;
+      cli_log --error "No arguments supplied. Syntax is like: check_installed <Program 1..> <Program 2..> <Etc..>"
     fi
     for prog in "${progrs[@]}"; do
       if ! [[ -x "$(command -v "${prog}")" ]]; then
@@ -131,10 +129,9 @@ check_gitlab_key() {
     else
       cli_log --read "Gitlab API key" "GITLAB_API_KEY"
         if [[ -z "${GITLAB_API_KEY}" ]]; then
-          cli_log "No input entered, exit script."
-          exit 1;
+          cli_log --error "No input entered, exit script."
         else
-          cli_log "Input detected, API key is: ${GITLAB_API_KEY}"
+          cli_log "Gitlab API key detected."
         fi
     fi
 }
@@ -145,10 +142,9 @@ check_wan_ip() {
     else
       cli_log --read "What is your WAN IP: " "WAN_IP"
         if [[ -z "${WAN_IP}" ]]; then
-          cli_log "No input entered, exit script."
-          exit 1;
+          cli_log --error "No input entered, exit script."
         else
-          cli_log "WAN IP detected, IP is: ${WAN_IP}"
+          cli_log "WAN IP detected."
         fi
     fi
 }
@@ -160,11 +156,11 @@ check_ssh_key() {
     cli_log --read "SSH public key" "SSH_KEY"
       if [[ -z "${SSH_KEY}" ]]; then
         cli_log "No SSH key detected, creating one."
-        ssh-keygen -b 4096 -t rsa -f /home/${SSH_USER}/.ssh/id_rsa -C "${SSH_USER}" -N "" &> /dev/null
+        ssh-keygen -b 4096 -t rsa -f /home/${SSH_USER}/.ssh/id_rsa -C "${SSH_USER}" -N "" &>> /dev/null
           if [ -n "${SSH_KEY}" ]; then
             cli_log "SSH key found."
           else
-            cli_log "Unknown error, exit." && exit 1;
+            cli_log --error "Unknown error, exit."
           fi
       else
         cli_log "SSH key found."
@@ -202,10 +198,9 @@ check_username() {
   else
     cli_log --read "SSH username" "SSH_USER"
       if [[ -z "${SSH_USER}" ]]; then
-        cli_log "No SSH username detected, exit script."
-        exit 1;
+        cli_log --error "No SSH username detected, exit script."
       else
-        cli_log "SSH username, user is ${SSH_USER}"
+        cli_log "SSH username detected, user is ${SSH_USER}"
       fi
   fi
 }
@@ -216,8 +211,7 @@ check_region() {
   else
     cli_log --read "AWS Region" "AWS_REGION"
       if [[ -z "${AWS_REGION}" ]]; then
-        cli_log "No AWS Region detected, exit script."
-        exit 1;
+        cli_log --error "No AWS Region detected, exit script."
       else
         cli_log "AWS Region detected."
       fi
@@ -230,8 +224,7 @@ check_aws_instance_type() {
   else
     cli_log --read "AWS Instance type" "AWS_INSTANCE"
       if [[ -z "${AWS_INSTANCE}" ]]; then
-        cli_log "No AWS Instance detected, exit script."
-        exit 1;
+        cli_log --error "No AWS Instance detected, exit script."
       else
         cli_log "AWS Instance type detected."
       fi
@@ -247,8 +240,8 @@ check_version() {
 
   if (( $(bc <<<"${version} > ${local_version}") )); then
       cli_log "Updating script to ${version}.."
-      cd "${DIR}" && git pull >> "${LOG_LOC}"
-      cli_log "Done, please rerun the script." && exit 1;
+      cd "${DIR}" && git pull &>> "${LOG_LOC}"
+      cli_log --exit "Done, please rerun the script."
   else
       cli_log "On latest version, proceeding.."
   fi
@@ -270,7 +263,7 @@ check_logfile() {
             cli_log "Log dir found, proceeding."
         else
             cli_log "Log dir not found, creating.."
-            mkdir -pv "${TMP_DIR}" >> "${LOG_LOC}"
+            mkdir -pv "${TMP_DIR}" &>> "${LOG_LOC}"
         fi
         ;;
 
@@ -286,17 +279,16 @@ check_logfile() {
             cli_log "Log dir found, proceeding."
         else
             cli_log "Log dir not found, creating.."
-            mkdir -pv "${TMP_DIR}" >> "${LOG_LOC}"
+            mkdir -pv "${TMP_DIR}" &>> "${LOG_LOC}"
         fi
         ;;
 
       *)
-          cli_log "Error in check_logfile function."
+          cli_log --error "Error in check_logfile function."
     esac
 }
 
 validate_config() {
-  #set -x
   local config_file_param
   config_file_param="${1}"
   local config_file
@@ -305,14 +297,14 @@ validate_config() {
 
   if [ -f "${config_file}" ]; then
       cli_log --no-log "Sourcing passed config file.."
-      source "${config_file}" && test_config
+      source "${config_file}" &>> "${LOG_LOC}" && test_config
   else 
        if [ -f "${static_config_file}" ]; then
         cli_log --no-log "${static_config_file} detected."
         source "${static_config_file}" && test_config
       else 
         cli_log --no-log "No config file parameter detected, no personal config found, defaulting to config in repo.."
-        source "${DIR}/src/config.sh" && test_config
+        source "${DIR}/src/config.sh" &>> "${LOG_LOC}" && test_config
       fi
   fi
 }
@@ -321,7 +313,7 @@ test_config() {
     if [ -n "${GITLAB_API_KEY}" ]; then
         cli_log "Config seems to be valid."
     else
-        cli_log "Config is not valid!" && exit 1;
+        cli_log --error "Config is not valid!"
     fi
 }
 
@@ -354,7 +346,7 @@ run_init() {
           ;;
 
       *)
-          cli_log "Error in run_init script."
+          cli_log --error "Error in run_init script."
     esac
 }
 
@@ -364,7 +356,7 @@ run_init() {
 
 run_test() {
   cli_log "Determining current state of the Box.."
-  cd "${DIR}/src/testing" && vagrant status >> "${LOG_LOC}"
+  cd "${DIR}/src/testing" && vagrant status &>> "${LOG_LOC}"
   if [ "${?}" == "running" ]; then
     cli_log "Test build is running already, use ./run.sh --ssh-test to SSH into the machine."
   else
@@ -372,7 +364,7 @@ run_test() {
     cli_log "Adding your Username to user_data.yml.." && sed "s|sshuser|vagrant|g" "${DIR}"/templates/user_data.yml > /tmp/pnd-server/cloud-init.yml
     cli_log "Destroying previous box if existing, creating new box and rebuilding.."
     cd "${DIR}/src/testing" && destroy_vagrant --test && \
-    cli_log "Building new box.." && vagrant up >> "${LOG_LOC}"
+    cli_log "Building new box.." && vagrant up &>> "${LOG_LOC}"
     setup_vagrant_box --test && cli_log "Cleaning up.." rm -rf /tmp/pnd-server/cloud-init.yml && \
     cli_log "Test build is done, run ./run.sh --ssh-test to SSH into the machine."
   fi
@@ -380,7 +372,7 @@ run_test() {
 
 run_build() {
   cli_log "Determining current state of the Box.."
-  cd "${DIR}/src/testing/ci-vagrant" && vagrant status >> "${LOG_LOC_BUILD}"
+  cd "${DIR}/src/testing/ci-vagrant" && vagrant status &>> "${LOG_LOC_BUILD}"
   if [ "${?}" == "running" ]; then
     cli_log "Build machine is running already, use ./run.sh --ssh-build to SSH into the machine."
   else
@@ -388,7 +380,7 @@ run_build() {
     cli_log "Adding Vagrant username to user_data.yml.." && sed "s|sshuser|vagrant|g" "${DIR}"/templates/user_data_build.yml > /tmp/pnd-server/cloud-init-ci.yml
     cli_log "Destroying previous box if existing, creating new box and rebuilding.."
     cd "${DIR}/src/testing/ci-vagrant" && destroy_vagrant --build && \
-    cli_log "Building new box.." && vagrant up >> "${LOG_LOC_BUILD}"
+    cli_log "Building new box.." && vagrant up &>> "${LOG_LOC_BUILD}"
     setup_vagrant_box --build && cli_log "Cleaning up.." 
     cli_log "Test build is done, run ./run.sh --ssh-build to SSH into the machine."
   fi
@@ -400,21 +392,21 @@ setup_vagrant_box() {
     case "${arg_}" in
       --test)
         cli_log "Fetching key from server.."
-        scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "${DIR}/src/testing/.vagrant/machines/binance-pnd/virtualbox/private_key" -P 2222  vagrant@127.0.0.1:/home/vagrant/.ssh/id_ed25519.pub "${TMP_DIR}/vagrant_key.pub" >> "${LOG_LOC}"
+        scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "${DIR}/src/testing/.vagrant/machines/binance-pnd/virtualbox/private_key" -P 2222  vagrant@127.0.0.1:/home/vagrant/.ssh/id_ed25519.pub "${TMP_DIR}/vagrant_key.pub" &>> "${LOG_LOC}"
         local ROOT_KEY_VAGRANT
         ROOT_KEY_VAGRANT=$(head -1 "${TMP_DIR}/vagrant_key.pub")
         cli_log "Adding fetched SSH pub key as Gitlab deploy key.."
-        curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_API_KEY}" --header "Content-Type:application/json" --data "{\"title\": \"pnd-server-vagrant\", \"key\": \"${ROOT_KEY_VAGRANT}\", \"can_push\": \"true\"}" "https://gitlab.com/api/v4/projects/24216317/deploy_keys" >> "${LOG_LOC}"
+        curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_API_KEY}" --header "Content-Type:application/json" --data "{\"title\": \"pnd-server-vagrant\", \"key\": \"${ROOT_KEY_VAGRANT}\", \"can_push\": \"true\"}" "https://gitlab.com/api/v4/projects/24216317/deploy_keys" &>> "${LOG_LOC}"
         cli_log "Cloning repo to the test server.."
-        vagrant_ssh --test-command "git clone --single-branch --branch master ${DEPLOY_REPO} /home/vagrant/repos/${BASENAME_REPO} --depth=1" >> "${LOG_LOC}"
+        vagrant_ssh --test-command "git clone --single-branch --branch master ${DEPLOY_REPO} /home/vagrant/repos/${BASENAME_REPO} --depth=1" &>> "${LOG_LOC}"
         cli_log "Fetching rest of the repo.."
-        vagrant_ssh --test-command "cd /home/vagrant/repos/${BASENAME_REPO} && git fetch --depth=${GIT_DEPTH}" >> "${LOG_LOC}"
+        vagrant_ssh --test-command "cd /home/vagrant/repos/${BASENAME_REPO} && git fetch --depth=${GIT_DEPTH}" &>> "${LOG_LOC}"
         cli_log "Installing Python requirements.."
-        vagrant_ssh --test-command "cd /home/vagrant/repos/${BASENAME_REPO} && pip3 install -r requirements.txt" >> "${LOG_LOC}"
+        vagrant_ssh --test-command "cd /home/vagrant/repos/${BASENAME_REPO} && pip3 install -r requirements.txt" &>> "${LOG_LOC}"
         if [ "${ENABLE_MONGO}" = "enabled" ]; then
           check_wan_ip && \
           cli_log "Adding your WAN IP to the MongoDB server.."
-          ssh "${MONGO_SSH_USER}"@"${MONGO_HOST}" "sudo ufw allow from ${WAN_IP} to any port ${MONGO_PORT} && sudo ufw reload" >> "${LOG_LOC}" && \
+          ssh "${MONGO_SSH_USER}"@"${MONGO_HOST}" "sudo ufw allow from ${WAN_IP} to any port ${MONGO_PORT} && sudo ufw reload" &>> "${LOG_LOC}" && \
           cli_log "Done, firewall reloaded."
         else
           cli_log "Not adding test build to MongoDB, did not read parameter."
@@ -425,7 +417,7 @@ setup_vagrant_box() {
       # Need to change this to a static directory
         scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "${DIR}/src/testing/ci-vagrant/.vagrant/machines/binance-pnd-build/virtualbox/private_key" -P 2222  "/home/${SSH_USER}/Documents/scripts/terraform-aws/src/configs/build-config.sh" vagrant@127.0.0.1:/home/vagrant/repos/terraform-aws/src/build-config.sh >> "${LOG_LOC_BUILD}"
         vagrant_ssh --build-command "cd /home/vagrant/repos/terraform-aws/src && ./build-config.sh && cd /home/vagrant/repos/terraform-aws/src/testing/ci-vagrant && ./setup_aws.sh"
-        vagrant_ssh --build-command "cd /home/vagrant/repos/terraform-aws && ./run.sh --run --config-file=/home/vagrant/repos/terraform-aws/src/build-config.sh" >> "${LOG_LOC_BUILD}"
+        vagrant_ssh --build-command "cd /home/vagrant/repos/terraform-aws && ./run.sh --run --config-file=/home/vagrant/repos/terraform-aws/src/build-config.sh" &>> "${LOG_LOC_BUILD}"
         local AWS_IP_BUILD
         AWS_IP_BUILD=$(grep -P 'ssh vagrant@*' "${LOG_LOC_BUILD}" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b")
         cli_log "IP to check status is: ${AWS_IP_BUILD}"
@@ -449,7 +441,7 @@ setup_vagrant_box() {
 }
 
 destroy_build() {
-  vagrant_ssh --build-command "cd /home/vagrant/repos/terraform-aws && ./run.sh --destroy --config-file=/home/vagrant/repos/terraform-aws/src/build-config.sh" >> "${LOG_LOC_BUILD}"
+  vagrant_ssh --build-command "cd /home/vagrant/repos/terraform-aws && ./run.sh --destroy --config-file=/home/vagrant/repos/terraform-aws/src/build-config.sh" &>> "${LOG_LOC_BUILD}"
   destroy_vagrant --build
 }
 
@@ -469,11 +461,11 @@ vagrant_ssh() {
           ;;
 
       --test-command)
-          cd "${DIR}/src/testing" && vagrant ssh -- -t "${commands_}" >> "${LOG_LOC}"
+          cd "${DIR}/src/testing" && vagrant ssh -- -t "${commands_}" &>> "${LOG_LOC}"
           ;;
 
       --build-command)
-          cd "${DIR}/src/testing/ci-vagrant" && vagrant ssh -- -t "${commands_}" >> "${LOG_LOC_BUILD}"
+          cd "${DIR}/src/testing/ci-vagrant" && vagrant ssh -- -t "${commands_}" &>> "${LOG_LOC_BUILD}"
           ;;
 
       *)
@@ -487,7 +479,7 @@ destroy_vagrant() {
     case "${arg_}" in
       --test)
         cli_log "Destroying Vagrant Test setup.."
-        cd "${DIR}/src/testing" && vagrant destroy --force >> "${LOG_LOC}"
+        cd "${DIR}/src/testing" && vagrant destroy --force &>> "${LOG_LOC}"
         # Rm folder or Virtualbox will cry
         local VBOX_DIR
         VBOX_DIR="/home/${SSH_USER}/VirtualBox VMs/binance-pnd"
@@ -500,7 +492,7 @@ destroy_vagrant() {
 
       --build)
         cli_log "Destroying Vagrant Build setup.."
-        cd "${DIR}/src/testing/ci-vagrant" && vagrant destroy --force >> "${LOG_LOC_BUILD}"
+        cd "${DIR}/src/testing/ci-vagrant" && vagrant destroy --force &>> "${LOG_LOC_BUILD}"
         # Rm folder or Virtualbox will cry
         local VBOX_DIR
         VBOX_DIR="/home/${SSH_USER}/VirtualBox VMs/binance-pnd-build"
