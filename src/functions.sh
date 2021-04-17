@@ -56,29 +56,37 @@ install_aws() {
     arg_="${1}"
     case "${arg_}" in
       --run)
-          cli_log "Installing AWS CLI.."
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
-          unzip /tmp/awscliv2.zip &>> "${LOG_LOC}"
-          cd /tmp && sudo ./aws/install &>> "${LOG_LOC}"
-          printf "%s\n" "aws_access_key_id=${AWS_ACCES}" >> /home/${SSH_USER}/.aws/credentials
-          printf "%s\n" "aws_secret_access_key=${AWS_SECRET}" >> /home/${SSH_USER}/.aws/credentials
-          printf "%s\n" "region=${AWS_REGION}" >> /home/${SSH_USER}/.aws/config && \
-          cli_log --no-log "Done installing AWS CLI."
+          if ! [ -x "$(command -v aws)" ]; then
+            cli_log "Installing AWS CLI.."
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
+            unzip /tmp/awscliv2.zip &>> "${LOG_LOC}"
+            cd /tmp && sudo ./aws/install &>> "${LOG_LOC}"
+            printf "%s\n" "aws_access_key_id=${AWS_ACCES}" >> /home/${SSH_USER}/.aws/credentials
+            printf "%s\n" "aws_secret_access_key=${AWS_SECRET}" >> /home/${SSH_USER}/.aws/credentials
+            printf "%s\n" "region=${AWS_REGION}" >> /home/${SSH_USER}/.aws/config && \
+            cli_log --no-log "Done installing AWS CLI."
+          else
+            cli_log --no-log "AWS CLI is already installed, proceeding.."
+          fi
           ;;
 
       --build)
-          cli_log "Installing AWS CLI.."
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
-          unzip /tmp/awscliv2.zip &>> "${LOG_LOC}"
-          cd /tmp && sudo ./aws/install &>> "${LOG_LOC}"
-          printf "%s\n" "aws_access_key_id=${AWS_ACCES}" >> /home/vagrant/.aws/credentials
-          printf "%s\n" "aws_secret_access_key=${AWS_SECRET}" >> /home/vagrant/.aws/credentials
-          printf "%s\n" "region=${AWS_REGION}" >> /home/vagrant/.aws/config && \
-          cli_log --no-log "Done installing AWS CLI."
+          if ! [ -x "$(command -v aws)" ]; then
+            cli_log "Installing AWS CLI.."
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
+            unzip /tmp/awscliv2.zip &>> "${LOG_LOC}"
+            cd /tmp && sudo ./aws/install &>> "${LOG_LOC}"
+            printf "%s\n" "aws_access_key_id=${AWS_ACCES}" >> /home/vagrant/.aws/credentials
+            printf "%s\n" "aws_secret_access_key=${AWS_SECRET}" >> /home/vagrant/.aws/credentials
+            printf "%s\n" "region=${AWS_REGION}" >> /home/vagrant/.aws/config && \
+            cli_log --no-log "Done installing AWS CLI."
+          else
+            cli_log --no-log "AWS CLI is already installed, proceeding.."
+          fi
           ;;
 
       *)
-          cli_log "Error in install_aws function."
+          cli_log --error "Error in install_aws function."
   esac
 }
 
