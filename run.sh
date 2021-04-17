@@ -25,7 +25,7 @@ case "${args_}" in
             stamp_logfile "terraform"
             cli_log "Destroying current infra.."
             cd "${DIR}"/terraform/deploy 
-            terraform destroy -auto-approve >> "${LOG_LOC}"
+            terraform destroy -auto-approve &>> "${LOG_LOC}"
             cli_log --exit "Destroyed everything."
             ;;
 
@@ -33,7 +33,7 @@ case "${args_}" in
             stamp_logfile "terraform"
             cli_log "Resetting.." && cli_log "Destroying current infra.."
             cd "${DIR}"/terraform/deploy 
-            terraform destroy -auto-approve >> "${LOG_LOC}"
+            terraform destroy -auto-approve &>> "${LOG_LOC}"
             cli_log --exit "Destroyed everything."
             ;;
 
@@ -96,8 +96,8 @@ cli_log "Adding your SSH key to user_data.yml.." && sed -i "s|sshkey|${SSH_KEY_O
 
 # cd to underlying terraform dir and apply all or exit on error
 cli_log "Creating EC2 instance and apply user_data.yml.."
-cd "${DIR}"/terraform/deploy && terraform init >> "${LOG_LOC}" && terraform plan >> "${LOG_LOC}" && \
-terraform apply -auto-approve >> "${LOG_LOC}" && cli_log "Done!" || exit 1;
+cd "${DIR}"/terraform/deploy && terraform init &>> "${LOG_LOC}" && terraform plan &>> "${LOG_LOC}" && \
+terraform apply -auto-approve &>> "${LOG_LOC}" && cli_log "Done!" || exit 1;
 
 declare AWS_IP
 AWS_IP=$(terraform output | grep public-ip | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b")
@@ -128,16 +128,16 @@ curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_API_KEY}" --header "Conten
 
 # Clone repo and install requirements
 cli_log "Cloning repo on the server.."
-ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "git clone --single-branch --branch master ${DEPLOY_REPO} /home/${SSH_USER}/repos/${BASENAME_REPO} --depth=1" >> "${LOG_LOC}"
+ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "git clone --single-branch --branch master ${DEPLOY_REPO} /home/${SSH_USER}/repos/${BASENAME_REPO} --depth=1" &>> "${LOG_LOC}"
 cli_log "Fetching rest of the repo.."
-ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "cd /home/${SSH_USER}/repos/${BASENAME_REPO} && git fetch --depth=${GIT_DEPTH}" >> "${LOG_LOC}"
+ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "cd /home/${SSH_USER}/repos/${BASENAME_REPO} && git fetch --depth=${GIT_DEPTH}" &>> "${LOG_LOC}"
 
 cli_log "Installing Python requirements.."
-ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "cd /home/${SSH_USER}/repos/${BASENAME_REPO} && pip3 install -r requirements.txt" >> "${LOG_LOC}" && cli_log "Done installing python requirements."
+ssh -o StrictHostKeyChecking=no "${SSH_USER}"@"${AWS_IP}" "cd /home/${SSH_USER}/repos/${BASENAME_REPO} && pip3 install -r requirements.txt" &>> "${LOG_LOC}" && cli_log "Done installing python requirements."
 
 if [ "${ENABLE_MONGO}" = "enable" ]; then
     cli_log "Adding EC2 IP to the MongoDB server.."
-    ssh "${MONGO_SSH_USER}"@"${MONGO_HOST}" "sudo ufw allow from ${AWS_IP} to any port ${MONGO_PORT} && sudo ufw reload" >> "${LOG_LOC}" && \
+    ssh "${MONGO_SSH_USER}"@"${MONGO_HOST}" "sudo ufw allow from ${AWS_IP} to any port ${MONGO_PORT} && sudo ufw reload" &>> "${LOG_LOC}" && \
     cli_log "Done, firewall reloaded."
 else
     cli_log "Not adding server to MongoDB, did not read parameter."
