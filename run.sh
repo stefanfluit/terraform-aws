@@ -26,7 +26,7 @@ case "${args_}" in
             cli_log "Destroying current infra.."
             cd "${DIR}"/terraform/deploy 
             terraform destroy -auto-approve >> "${LOG_LOC}"
-            cli_log "Destroyed everything." && exit
+            cli_log --exit "Destroyed everything."
             ;;
 
         --reset)
@@ -34,8 +34,7 @@ case "${args_}" in
             cli_log "Resetting.." && cli_log "Destroying current infra.."
             cd "${DIR}"/terraform/deploy 
             terraform destroy -auto-approve >> "${LOG_LOC}"
-            cli_log "Destroyed everything."
-            # Without the exit the script will just continue and rebuild the structure
+            cli_log --exit "Destroyed everything."
             ;;
 
         --run)
@@ -48,40 +47,32 @@ case "${args_}" in
             run_init --vagrant
             stamp_logfile "vagrant"
             cli_log "Building test env locally with Vagrant.."
-            run_test && cli_log "Done!"
-            exit
+            run_test && cli_log --exit "Done!"
             ;;
 
         --ssh-test)
-            vagrant_ssh --test
-            exit
+            vagrant_ssh --test && cli_log --exit "Done."
             ;;
 
         --build)
             run_init --build
-            run_build
-            exit
+            run_build && cli_log --exit "Done."
             ;;
 
         --destroy-build)
-            destroy_build
-            exit
+            destroy_build && cli_log --exit "Done."
             ;;
 
         --ssh-build)
-            vagrant_ssh --build
-            exit
+            vagrant_ssh --build && cli_log --exit "Done."
             ;;
 
         --destroy-test)
-            destroy_vagrant
-            cli_log "Done!"
-            exit
+            destroy_vagrant && cli_log --exit "Done."
             ;;
 
         --test-config)
-            test_config
-            exit
+            test_config && cli_log --exit "Done."
             ;;
 
         *)
