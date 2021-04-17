@@ -19,6 +19,17 @@ cli_log() {
             printf "PnD Binance Server - %s: %s\n" "${timestamp_}" "${2}" 
             ;;
 
+        --error)
+            printf "PnD Binance Server - %s: %s\n" "${timestamp_}" "ERROR!" && \
+            printf "PnD Binance Server - %s: %s\n" "${timestamp_}" "${2}" && \
+            exit 1;
+            ;;
+
+        --exit)
+            printf "PnD Binance Server - %s: %s\n" "${timestamp_}" "${2}" && \
+            exit 1;
+        ;;
+
         *)
             printf "PnD Binance Server - %s: %s\n" "${timestamp_}" "${arg_}"
             printf "PnD Binance Server - %s: %s\n" "${timestamp_}" "${arg_}" >> "${LOG_LOC}"
