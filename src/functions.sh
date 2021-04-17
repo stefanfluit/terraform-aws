@@ -9,14 +9,19 @@ cli_log() {
     missing_value="${2}"
     local bash_var
     bash_var="${3}"
+    local interval_
+    interval_="1"
+    # The interval is for the amount of sleep between commands, to give you time to cancel if you feel like you have to. 
 
     case "${arg_}" in
         --read)
-            read -p "PnD Binance Server - ${timestamp_}: Please enter value for ${missing_value}: " "${bash_var}" 
+            read -p "PnD Binance Server - ${timestamp_}: Please enter value for ${missing_value}: " "${bash_var}"
+            sleep "${interval_}"
             ;;
 
         --no-log)
-            printf "PnD Binance Server - %s: %s\n" "${timestamp_}" "${2}" 
+            printf "PnD Binance Server - %s: %s\n" "${timestamp_}" "${2}"
+            sleep "${interval_}"
             ;;
 
         --error)
@@ -32,7 +37,8 @@ cli_log() {
 
         *)
             printf "PnD Binance Server - %s: %s\n" "${timestamp_}" "${arg_}"
-            printf "PnD Binance Server - %s: %s\n" "${timestamp_}" "${arg_}" >> "${LOG_LOC}"
+            printf "PnD Binance Server - %s: %s\n" "${timestamp_}" "${arg_}" &>> "${LOG_LOC}"
+            sleep "${interval_}"
     esac
 }
 
@@ -506,4 +512,42 @@ destroy_vagrant() {
       *)
           cli_log "Error in destroy_vagrant function."
     esac
+}
+
+#####################################################################
+# Prometheus functions
+#####################################################################
+
+deploy_prometheus() {
+  ## DOWNLOAD PROMETHEUS REPO
+  # Repo with up-to-date Prometheus Docker stack
+  local repo_="https://github.com/vegasbrianc/prometheus.git"
+  local basename_repo
+  basename_repo=$(basename "${repo_}" .git)
+  if [ -d "/home/${SSH_USER}/${basename_repo}" ]; then
+    cd "/home/${SSH_USER}/${basename_repo}" && git pull &>> "${LOG_LOC}"
+  else
+    cd "/home/${SSH_USER}/" && \
+    git clone "${repo_}" &>> "${LOG_LOC}" && cli_log --no-log "Cloned Prometheus stack repo."
+  fi
+  ## DOWNLOAD DOCKER/COMPOSE/SWARM
+  if [ -x "$(which docker)" ]; then
+    cli_log --no-log "Docker installed, proceeding.."
+  else
+    cli_log --no-log "Docker not found, installing.."
+    curl -fsSL https://get.docker.com -o get-docker.sh &>> "${LOG_LOC}"
+    sudo sh get-docker.sh &>> "${LOG_LOC}" && cli_log --no-log "Installed Docker." || cli_log --error "Could not install Docker."
+  fi
+  ## Add the server to the Prometheus configuration file..
+  local server_ip
+  server_ip="${1}"
+  cli_log "Adding server IP to the Prometheus Scrape configurator.." && \
+  sed "s|serverip|${server_ip}|g" "${DIR}"/templates/prometheus.yml > "/home/${SSH_USER}/${basename_repo}/prometheus/prometheus.yml" &>> "${LOG_LOC}"
+
+  cli_log --no-log "Adding Dashboard to Grafana.."
+  cp "${DIR}"/templates/node_rev1.json /home/${SSH_USER}/${basename_repo}/grafana/provisioning/dashboards/node_rev1.json
+
+  cli_log "Creating Docker environment.." && \
+  cd "/home/${SSH_USER}/${basename_repo}" && HOSTNAME=$(hostname) docker stack deploy -c docker-stack.yml prom &>> "${LOG_LOC}"
+  cli_log "The Grafana Dashboard is now accessible via: http://localhost:3000"
 }
