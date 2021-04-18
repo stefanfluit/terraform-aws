@@ -26,6 +26,7 @@ case "${args_}" in
         --destroy)
             stamp_logfile "terraform"
             cli_log "Destroying current infra.."
+            deploy_prometheus --destroy
             cd "${DIR}"/terraform/deploy 
             terraform destroy -auto-approve &>> "${LOG_LOC}"
             cli_log --exit "Destroyed everything."
@@ -36,7 +37,7 @@ case "${args_}" in
             cli_log "Resetting.." && cli_log "Destroying current infra.."
             cd "${DIR}"/terraform/deploy 
             terraform destroy -auto-approve &>> "${LOG_LOC}"
-            cli_log --exit "Destroyed everything."
+            cli_log "Destroyed everything."
             ;;
 
         --run)
@@ -49,28 +50,44 @@ case "${args_}" in
             run_init --vagrant
             stamp_logfile "vagrant"
             cli_log "Building test env locally with Vagrant.."
-            run_test && cli_log --exit "Done!"
+            run_test
+            cli_log --exit "Done!"
             ;;
 
         --ssh-test)
-            vagrant_ssh --test && cli_log --exit "Done."
+            vagrant_ssh --test
+            cli_log --exit "Done."
             ;;
 
         --build)
             run_init --build
-            run_build && cli_log --exit "Done."
+            run_build
+            cli_log --exit "Done running build."
             ;;
 
         --destroy-build)
-            destroy_build && cli_log --exit "Done."
+            destroy_build
+            cli_log --exit "Done destroying build."
             ;;
 
         --ssh-build)
-            vagrant_ssh --build && cli_log --exit "Done."
+            vagrant_ssh --build
+            cli_log --exit "Done."
             ;;
 
         --destroy-test)
-            destroy_vagrant && cli_log --exit "Done."
+            destroy_vagrant
+            cli_log --exit "Done destroying test."
+            ;;
+
+        --deploy-prometheus)
+            deploy_prometheus --build && cli_log --exit "Done deploying Prometheus."
+            ;;
+
+        --destroy-prometheus)
+            deploy_prometheus --destroy
+            cli_log --exit "Done destroying Prometheus."
+            #&& cli_log --exit "Done deploying Prometheus."
             ;;
 
         --test-config)
@@ -101,10 +118,10 @@ cli_log "Adding your SSH key to user_data.yml.." && sed -i "s|sshkey|${SSH_KEY_O
 # cd to underlying terraform dir and apply all or exit on error
 cli_log "Creating EC2 instance and apply user_data.yml.."
 cd "${DIR}"/terraform/deploy && terraform init &>> "${LOG_LOC}" && terraform plan &>> "${LOG_LOC}" && \
-terraform apply -auto-approve &>> "${LOG_LOC}" && cli_log "Done!" || exit 1;
+terraform apply -auto-approve &>> "${LOG_LOC}" && cli_log "Done!"
 
 declare AWS_IP
-AWS_IP=$(terraform output | grep public-ip | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b")
+AWS_IP=$(cd "${DIR}"/terraform/deploy && terraform output | grep public-ip | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b")
 
 # Sleep to prevent 'refused' error
 cli_log "Waiting for server to start.." && sleep 10
@@ -149,7 +166,7 @@ fi
 
 if [ "${ENABLE_PROMETHEUS}" = "enable" ]; then
     cli_log "Adding server to Prometheus server.."
-    deploy_prometheus "${AWS_IP}"
+    deploy_prometheus --build
 else
     cli_log --no-log "Not adding server to Prometheus, did not read parameter."
 fi
