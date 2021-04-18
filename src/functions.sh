@@ -43,10 +43,11 @@ cli_log() {
 }
 
 check_bash_version() {
-if ((BASH_VERSINFO[0] < 4))
-then 
-  cli_log --error "Sorry, you need at least bash-4.0 to run this script." 
-fi
+  if ((BASH_VERSINFO[0] < 4)); then 
+      cli_log --error "Sorry, you need at least bash-4.0 to run this script." 
+  else
+      cli_log --no-log "Bash version is fine, proceeding.."
+  fi
 }
 
 usage_() {
@@ -343,6 +344,7 @@ run_init() {
     arg_="${1}"
     case "${arg_}" in
       --terraform)
+          check_bash_version
           check_logfile --run
           check_update_param
           check_installed "terraform"
@@ -355,6 +357,7 @@ run_init() {
           ;;
 
       --vagrant)
+          check_bash_version
           check_installed "virtualbox"
           check_logfile --run
           check_update_param
@@ -362,6 +365,7 @@ run_init() {
           ;;
 
       --build)
+          check_bash_version
           check_logfile --build
           check_update_param
           ;;
