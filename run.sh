@@ -19,6 +19,8 @@ declare args_
 args_="${1}"
 
 cli_log "Logs can be found in ${LOG_LOC}"
+cli_log "Tail the file in a second terminal for verbose output of commands."
+cli_log "Command: tail -f ${LOG_LOC}"
 
 case "${args_}" in
         --destroy)
@@ -80,7 +82,9 @@ case "${args_}" in
 esac
 
 cli_log "Adding variables to configuration files.."
+
 cli_log "Adding your Username to user_data.yml.." && sed "s|sshuser|${SSH_USER}|g" "${DIR}"/templates/user_data.yml > "${DIR}"/terraform/deploy/user_data.yml
+cli_log "Restricting Prometheus Scraper to your current IP.." && sed -i "s|sship|${WAN_IP}|g" "${DIR}"/terraform/deploy/user_data.yml
 
 cli_log "Adding Provider to Terraform.." && sed "s|sshuser|${AWS_USER}|g" "${DIR}"/templates/provider.tf > "${DIR}"/terraform/deploy/provider.tf
 cli_log "Defining EC2 instance count in Terraform.." && sed -i "s|instancecount|${AWS_COUNT}|g" "${DIR}"/terraform/deploy/provider.tf
@@ -89,9 +93,9 @@ cli_log "Defining VPC Region in Terraform.." && sed -i "s|instanceregion|${AWS_R
 cli_log "Adding Region to Terraform.." && sed -i "s|awsregion|${AWS_REGION}|g" "${DIR}"/terraform/deploy/provider.tf
 
 cli_log "Adding Instance type to Terraform.." && sed "s|ec2_type|${AWS_INSTANCE}|g" "${DIR}"/templates/variables.tf > "${DIR}"/terraform/deploy/variables.tf
-cli_log "Adding Instance type to Terraform.." && sed -i "s|instanceregion|${AWS_REGION}|g" "${DIR}"/terraform/deploy/variables.tf
+cli_log "Adding Instance region to Terraform.." && sed -i "s|instanceregion|${AWS_REGION}|g" "${DIR}"/terraform/deploy/variables.tf
 
-cli_log "Adding Instance type to Terraform.." && sed -i "s|instancecount|${AWS_COUNT}|g" "${DIR}"/terraform/deploy/variables.tf
+cli_log "Adding Instance count to Terraform.." && sed -i "s|instancecount|${AWS_COUNT}|g" "${DIR}"/terraform/deploy/variables.tf
 cli_log "Adding your SSH key to user_data.yml.." && sed -i "s|sshkey|${SSH_KEY_OUTPUT}|g" "${DIR}"/terraform/deploy/user_data.yml
 
 # cd to underlying terraform dir and apply all or exit on error
@@ -141,6 +145,13 @@ if [ "${ENABLE_MONGO}" = "enable" ]; then
     cli_log "Done, firewall reloaded."
 else
     cli_log "Not adding server to MongoDB, did not read parameter."
+fi
+
+if [ "${ENABLE_PROMETHEUS}" = "enable" ]; then
+    cli_log "Adding server to Prometheus server.."
+    deploy_prometheus "${AWS_IP}"
+else
+    cli_log --no-log "Not adding server to Prometheus, did not read parameter."
 fi
 
 cli_log "Access server: ssh ${SSH_USER}@${AWS_IP}"
