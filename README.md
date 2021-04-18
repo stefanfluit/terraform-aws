@@ -18,12 +18,22 @@ cd into the repo
 cd terraform-aws
 ```
 
-Add user and Gitlab API key here, and Discord API URL if you want a Discord alert:
+Copy the config template to your home directory:
 ```
-vim src/config.sh
+cp src/config.sh "/home/$(whoami)/pnd-config.sh"
 ```
 
-To create the EC2 and VPC infrastructure:
+Edit the variables:
+```
+vim "/home/$(whoami)/pnd-config.sh"
+```
+
+Make sure your config is working correctly for the first time:
+```
+./run.sh --test-config
+```
+
+To create the infra after, run:
 ```
 ./run.sh --run
 ```
@@ -38,17 +48,30 @@ To destroy the server and infrastructure:
 ./run.sh --destroy
 ```
 
-To run with a local config:
+To run with a different config:
 ```
 ./run.sh --run --config-file=/path/to/config/file.sh
 ```
 
-Before you run:
-It's best to install Terraform and AWS yourself. Run "aws configure" after installing.
+To run on your localhost as a VM (Virtualbox must be installed), run:
 ```
-https://learn.hashicorp.com/tutorials/terraform/install-cli
+./run.sh --test
 ```
+
+To SSH into that machine, run:
 ```
-https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html#cliv2-linux-install
+./run.sh --ssh-test
 ```
-Tested on Fedora Desktop 33 and WSL 2 on Windows 10 20h2.
+
+If you want the script to be accessible at all times, put this in your ~/.bashrc at the end of it:
+
+```
+terraform-aws() {
+  local args_1
+  args_1="${1}"
+  local args_2
+  args_2="${2}"
+  cd /path/to/the/repo/terraform-aws && ./run.sh "${args_1}" "${args_2}"
+}
+```
+Make sure that the path to the script is correct. Run a `pwd` in the directory of the script.
