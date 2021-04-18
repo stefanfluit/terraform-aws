@@ -32,7 +32,7 @@ cli_log() {
 
         --exit)
             printf "PnD Binance Server - %s: %s\n" "${timestamp_}" "${2}" && \
-            exit 1;
+            exit 0;
         ;;
 
         *)
@@ -40,6 +40,13 @@ cli_log() {
             printf "PnD Binance Server - %s: %s\n" "${timestamp_}" "${arg_}" &>> "${LOG_LOC}"
             sleep "${interval_}"
     esac
+}
+
+check_bash_version() {
+if ((BASH_VERSINFO[0] < 4))
+then 
+  cli_log --error "Sorry, you need at least bash-4.0 to run this script." 
+fi
 }
 
 usage_() {
@@ -518,7 +525,7 @@ destroy_vagrant() {
         ;;
 
       *)
-          cli_log "Error in destroy_vagrant function."
+          cli_log --error "Error in destroy_vagrant function."
     esac
 }
 
@@ -527,35 +534,63 @@ destroy_vagrant() {
 #####################################################################
 
 deploy_prometheus() {
-  ## DOWNLOAD PROMETHEUS REPO
-  # Repo with up-to-date Prometheus Docker stack
-  local repo_="https://github.com/vegasbrianc/prometheus.git"
+  local repo_="https://github.com/stefanfluit/dockprom.git"
   local basename_repo
   basename_repo=$(basename "${repo_}" .git)
-  if [ -d "/home/${SSH_USER}/${basename_repo}" ]; then
-    cd "/home/${SSH_USER}/${basename_repo}" && git pull &>> "${LOG_LOC}"
-  else
-    cd "/home/${SSH_USER}/" && \
-    git clone "${repo_}" &>> "${LOG_LOC}" && cli_log --no-log "Cloned Prometheus stack repo."
-  fi
-  ## DOWNLOAD DOCKER/COMPOSE/SWARM
-  if [ -x "$(which docker)" ]; then
-    cli_log --no-log "Docker installed, proceeding.."
-  else
-    cli_log --no-log "Docker not found, installing.."
-    curl -fsSL https://get.docker.com -o get-docker.sh &>> "${LOG_LOC}"
-    sudo sh get-docker.sh &>> "${LOG_LOC}" && cli_log --no-log "Installed Docker." || cli_log --error "Could not install Docker."
-  fi
-  ## Add the server to the Prometheus configuration file..
-  local server_ip
-  server_ip="${1}"
-  cli_log "Adding server IP to the Prometheus Scrape configurator.." && \
-  sed "s|serverip|${server_ip}|g" "${DIR}"/templates/prometheus.yml > "/home/${SSH_USER}/${basename_repo}/prometheus/prometheus.yml" &>> "${LOG_LOC}"
+  local arg_
+    arg_="${1}"
+    case "${arg_}" in
+      --build)
+        local AWS_IP
+        AWS_IP=$(cd "${DIR}"/terraform/deploy && terraform output | grep public-ip | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b")
+        if getent group docker | grep -q "\b${SSH_USER}\b"; then
+          cli_log --no-log "User is part of Docker group, proceeding."
+        else
+          cli_log "User is NOT a part of Docker group, exit."
+          cli_log --exit "Command to fix: sudo usermod -a -G docker ${SSH_USER}"
+        fi
+        local LAN_IP
+        LAN_IP="$(hostname -I | cut -d' ' -f1)"
+        ## DOWNLOAD DOCKER/COMPOSE/SWARM
+        if [ -x "$(which docker)" ]; then
+          cli_log --no-log "Docker installed, proceeding.."
+        else
+          cli_log --no-log "Docker not found, installing.."
+          curl -fsSL https://get.docker.com -o get-docker.sh &>> "${LOG_LOC}"
+          sudo sh get-docker.sh &>> "${LOG_LOC}" && cli_log --no-log "Installed Docker." || cli_log --error "Could not install Docker."
+        fi
+        ## DOWNLOAD PROMETHEUS REPO
+        # Repo with up-to-date Prometheus Docker stack
+        if [ -d "/home/${SSH_USER}/${basename_repo}" ]; then
+          docker-compose down &>> "${LOG_LOC}"
+          rm -rf "/home/${SSH_USER}/${basename_repo}" &>> "${LOG_LOC}"
+          cd "/home/${SSH_USER}" && git clone "${repo_}" &>> "${LOG_LOC}"
+          docker network create monitor-net &>> "${LOG_LOC}"
+        else
+          cd "/home/${SSH_USER}/" && \
+          git clone "${repo_}" &>> "${LOG_LOC}" && cli_log --no-log "Cloned Prometheus stack repo."
+          docker network create monitor-net &>> "${LOG_LOC}"
+        fi
+        ## Add the server to the Prometheus configuration file..
+        cli_log "Adding server IP to the Prometheus Scrape configurator.." && \
+        rm -rf "/home/${SSH_USER}/${basename_repo}/prometheus/prometheus.yml" && \
+        sed "s|serverip|${AWS_IP}|g" "${DIR}/templates/prometheus.yml" > "/home/${SSH_USER}/${basename_repo}/prometheus/prometheus.yml"
+        cli_log --no-log "Adding Dashboard to Grafana.."
+        cp "${DIR}"/templates/node_rev1.json /home/${SSH_USER}/${basename_repo}/grafana/provisioning/dashboards/node_rev1.json
+        cli_log "Creating Docker environment.." && \
+        cd "/home/${SSH_USER}/${basename_repo}" && \
+        ADMIN_USER=admin ADMIN_PASSWORD=admin ADMIN_PASSWORD_HASH=JDJhJDE0JE91S1FrN0Z0VEsyWmhrQVpON1VzdHVLSDkyWHdsN0xNbEZYdnNIZm1pb2d1blg4Y09mL0ZP docker-compose up -d &>> "${LOG_LOC}"
+        cli_log "The Grafana Dashboard is now accessible via: http://LAN_IP:3000, I think it is: http://${LAN_IP}:3000"
+        cli_log "The username is: admin"
+        cli_log "The password is: admin"
+        ;;
 
-  cli_log --no-log "Adding Dashboard to Grafana.."
-  cp "${DIR}"/templates/node_rev1.json /home/${SSH_USER}/${basename_repo}/grafana/provisioning/dashboards/node_rev1.json
+      --destroy)
+        cd "/home/${SSH_USER}/${basename_repo}" && docker-compose down &>> "${LOG_LOC}" && \
+        cli_log --no-log "Done destroying the Compose stack."
+        ;;
 
-  cli_log "Creating Docker environment.." && \
-  cd "/home/${SSH_USER}/${basename_repo}" && HOSTNAME=$(hostname) docker stack deploy -c docker-stack.yml prom &>> "${LOG_LOC}"
-  cli_log "The Grafana Dashboard is now accessible via: http://localhost:3000"
+      *)
+          cli_log --error "Error in deploy_prometheus function."
+    esac
 }
