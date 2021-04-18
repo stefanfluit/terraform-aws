@@ -75,3 +75,8 @@ terraform-aws() {
 }
 ```
 Make sure that the path to the script is correct. Run a `pwd` in the directory of the script.
+Now, you can just type the following regardless of the directory you're in:
+
+```
+terraform-aws --run
+```
